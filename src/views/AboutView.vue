@@ -1,5 +1,71 @@
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
-  </div>
+  <v-container>
+    <v-row justify="center">
+      <v-col cols="12" md="8">
+        <v-card class="pa-4" elevation="2">
+          <v-card-title class="text-h5 font-weight-bold"> 关于 BChat </v-card-title>
+
+          <v-card-text class="mt-2">
+            <p>
+              <strong>BChat</strong> 是一个基于 Vue 3 + Vuetify 3 构建的现代聊天应用， 支持
+              PWA，适用于移动端和桌面端浏览器。
+            </p>
+
+            <p>它旨在提供一个让我发布在线游戏的平台，同时具备简洁实用的聊天功能。</p>
+
+            <p>当前版本为测试阶段，目前只有基础聊天功能，未来计划加入更多功能如</p>
+
+            <!-- 技术徽章 -->
+            <div class="my-4">
+              <v-img
+                src="https://img.shields.io/badge/Vue-3.x-brightgreen"
+                height="24"
+                class="mr-2"
+                inline
+              />
+              <v-img
+                src="https://img.shields.io/badge/Vuetify-3.x-blue"
+                height="24"
+                class="mr-2"
+                inline
+              />
+              <v-img
+                src="https://img.shields.io/badge/PWA-supported-orange"
+                height="24"
+                class="mr-2"
+                inline
+              />
+            </div>
+
+            <!-- 反馈按钮 -->
+            <v-btn
+              color="primary"
+              variant="outlined"
+              :href="githubIssuesUrl"
+              target="_blank"
+              class="mt-2"
+            >
+              给我反馈
+            </v-btn>
+
+            <p class="text-caption mt-4">
+              开发者：DarkGoldBar <br />
+              技术栈：Vue 3 / Vuetify 3 / Vue-Router / PWA
+            </p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
+
+<script>
+export default {
+  name: 'AboutView',
+  data() {
+    return {
+      githubIssuesUrl: 'https://github.com/你的仓库地址/issues'
+    }
+  }
+}
+</script>
