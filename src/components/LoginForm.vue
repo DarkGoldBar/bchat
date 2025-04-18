@@ -62,15 +62,15 @@ export default {
     }
   },
   methods: {
-    login() {
-      const isValid = this.$refs.formRef.validate()
-      if (!isValid) return false
+    async login() {
+      const validate = await this.$refs.formRef.validate()
+      if (!validate.valid) return false
       // TODO: 处理登录逻辑
       console.log('登录：', this.username, this.password)
     },
-    handleRegisterClick() {
-      const isValid = this.$refs.formRef.validate()
-      if (!isValid) return false
+    async handleRegisterClick() {
+      const validate = await this.$refs.formRef.validate()
+      if (!validate.valid) return false
       // TODO: 处理注册逻辑
       this.dialog = true
     },

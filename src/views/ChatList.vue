@@ -57,14 +57,14 @@ export default {
       // 你可以替换为真实 API 请求
       this.friends = await Promise.resolve([
         {
-          id: 1,
+          id: 'ZhangSan',
           name: '张三',
           avatar: 'https://i.pravatar.cc/100?img=1',
           lastMessage: '嘿，你好！',
           lastMessageTime: '2025-04-16T15:30:00'
         },
         {
-          id: 2,
+          id: 'LiSi',
           name: '李四',
           avatar: 'https://i.pravatar.cc/100?img=2',
           lastMessage: '我们明天几点见？',
@@ -77,8 +77,7 @@ export default {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     },
     openChat(friend) {
-      // 跳转到聊天页面或打开对话（你可以替换为 router.push）
-      console.log('打开与', friend.name, '的聊天')
+      this.$router.push({ name: 'ChatView', params: { friendId: friend.id } })
     }
   }
 }

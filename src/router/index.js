@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import ChatView from '../views/ChatView.vue'
 import ChatList from '../views/ChatList.vue'
 
 const routes = [
@@ -12,6 +13,11 @@ const routes = [
     path: '/chat',
     name: 'chat',
     component: ChatList
+  },
+  {
+    path: '/chat/:friendId',
+    name: 'ChatView',
+    component: ChatView
   },
   {
     path: '/about',
