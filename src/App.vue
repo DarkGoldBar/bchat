@@ -22,4 +22,7 @@
 <script setup>
 import { ref } from 'vue'
 const drawer = ref(false)
+if (process.env.NODE_ENV === 'development') {
+  console.log('开发模式。', process.env)
+}
 </script>

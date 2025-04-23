@@ -12,22 +12,37 @@
         </p>
       </v-col>
 
-      <!-- 登录表单组件 -->
+      <!-- 登录区域 -->
       <v-col cols="12" md="6" class="mx-auto">
-        <LoginForm />
+        <div v-if="user">
+          <v-card class="pa-4" elevation="2">
+            <p class="text-h6 mb-4">欢迎回来，{{ user.userId }}</p>
+            <v-btn color="error" @click="logout">退出登录</v-btn>
+          </v-card>
+        </div>
+        <LoginForm v-else />
       </v-col>
     </v-row>
   </v-container>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
+<script setup>
+import { ref, onMounted } from 'vue'
 import LoginForm from '@/components/LoginForm.vue'
+import { useAuth } from '@/composables/useAuth'
 
-export default defineComponent({
-  name: 'HomeView',
-  components: {
-    LoginForm
+const { getUserFromToken, removeToken } = useAuth()
+const user = ref(null)
+
+onMounted(() => {
+  const u = getUserFromToken()
+  if (u) {
+    user.value = u
   }
 })
+
+const logout = () => {
+  removeToken()
+  location.reload() // 刷新页面以重置视图
+}
 </script>
