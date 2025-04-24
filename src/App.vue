@@ -1,5 +1,5 @@
 <template>
-  <v-app class="fill-height d-flex flex-column">
+  <v-app class="h-screen">
     <v-app-bar app color="primary" dark>
       <v-app-bar-nav-icon @click="drawer = !drawer" />
       <v-toolbar-title>BChat</v-toolbar-title>
@@ -13,7 +13,7 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-main>
+    <v-main class="h-100 overflow-hidden">
       <router-view />
     </v-main>
   </v-app>
