@@ -11,9 +11,7 @@
               PWA，适用于移动端和桌面端浏览器。
             </p>
 
-            <p>它旨在提供一个让我发布在线游戏的平台，同时具备简洁实用的聊天功能。</p>
-
-            <p>当前版本为测试阶段，目前只有基础聊天功能，未来计划加入更多功能如</p>
+            <p>它旨在提供一个让我发布在线游戏的平台。</p>
 
             <!-- 技术徽章 -->
             <div class="my-4">
@@ -64,7 +62,7 @@ export default {
   name: 'AboutView',
   data() {
     return {
-      githubIssuesUrl: 'https://github.com/你的仓库地址/issues'
+      githubIssuesUrl: 'https://github.com/DarkGoldBar/bchat/issues'
     }
   }
 }

@@ -8,7 +8,6 @@
     <v-navigation-drawer app v-model="drawer" temporary>
       <v-list>
         <v-list-item to="/" title="首页" />
-        <v-list-item to="/chat" title="聊天" />
         <v-list-item to="/about" title="关于" />
       </v-list>
     </v-navigation-drawer>
