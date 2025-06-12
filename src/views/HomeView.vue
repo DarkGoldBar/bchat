@@ -57,9 +57,7 @@ const snackbarColor = ref('error')
 const handleGameClick = async (game) => {
   try {
     // 发送POST请求
-    const response = await axios.post(`${API_URL}/room`, {
-      type: game.type
-    })
+    const response = await axios.post(`${API_URL}/room?type=${game.type}`)
 
     // 获取返回的roomId
     const roomId = response.data.id

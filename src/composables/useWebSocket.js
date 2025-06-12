@@ -6,7 +6,10 @@ const baseWsUrl = process.env.VUE_APP_WS_API_URL
 /**
  * Establishes a WebSocket connection to a room.
  *
- * @param {string} roomId The ID of the room to connect to.
+ * @param {Object} roomId The ID of the room to connect to.
+ * @param {string} roomId.value The ID of the room to connect to.
+ * @param {Object} me 
+ * @param {Object} me.value
  * @param {Object} [options] Options for the connection.
  * @param {function(event):void} [options.onMessage] Called when a message is received.
  * @param {function(event):void} [options.onOpen] Called when the connection is established.
