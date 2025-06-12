@@ -21,11 +21,13 @@
     <!-- 观众区域 -->
     <v-card class="pa-2 mb-3" @click="emit('set-position', 0)">
       <div class="text-subtitle-2 mb-1">观众区（点击加入）</div>
-      <v-avatar-group max="6">
-        <v-avatar v-for="(user, index) in spectators" :key="index" size="40" class="mx-1">
-          <v-img :src="user.avatar" />
+      <v-row>
+        <v-avatar v-for="(user, index) in spectators" :key="index" :color="user.color" size="40" class="mx-1">
+          <v-img v-if="user.img" :src="user.img"></v-img>
+          <v-icon v-if="user.icon" :icon="user.icon"></v-icon>
+          <span v-else="user.text">{{ user.text }}</span>
         </v-avatar>
-      </v-avatar-group>
+      </v-row>
     </v-card>
 
     <!-- 编辑弹窗 -->
@@ -47,7 +49,7 @@
 </template>
 
 <script setup>
-import { computed, ref, defineEmits, defineProps } from 'vue'
+import { computed, ref } from 'vue'
 
 /** @typedef {import('@/types.js').User} User */
 const props = defineProps({
@@ -61,6 +63,7 @@ const props = defineProps({
 
 const emit = defineEmits(['set-position', 'change-self'])
 
+/** @type {Record<number, User>} */
 const positionMap = computed(() => {
   const map = {}
   for (const user of props.members) {
@@ -69,6 +72,7 @@ const positionMap = computed(() => {
   return map
 })
 
+/** @type {User[]} */
 const spectators = computed(() => props.members.filter((m) => m.position === 0))
 
 function isMe(user) {

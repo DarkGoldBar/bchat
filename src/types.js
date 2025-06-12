@@ -32,14 +32,18 @@
  * AWS Lambda WebSocket 返回对象
  * @typedef {Object} WebSocketResult
  * @property {number} statusCode - 返回值
- * @property {string} [error]
+ * @property {string} [body]
  */
 
 /**
  * @typedef {Object} User
  * @property {string} uuid - 用户唯一标识
  * @property {string} name - 用户名
- * @property {string} avatar - 用户头像
+ * @property {Object} avatar - 用户头像
+ * @property {string} avatar.icon - 
+ * @property {string} avatar.text - 
+ * @property {string} avatar.color - 
+ * @property {string} avatar.img - 
  * @property {string} [connectID] - 连接ID。
  * @property {number} [position] - 房间中的位置。0为观众位，观众位可以重复，其他位置不可重复。不能大于房间的最大位置。
  */
@@ -59,7 +63,7 @@
 /**
  * @typedef {Object} RoomMeta
  * @property {'LOBBY' | 'INGAME' | 'GAMEOVER'} stage - 状态
- * @property {number} memberLimit - 最大位置号
+ * @property {number} posLimit - 最大位置号
  */
 
 /**
@@ -71,4 +75,4 @@
  * @property {function(): WebSocketResult} move - 移动处理函数，返回 WebSocket 结果
  */
 
-export {}
+export {};

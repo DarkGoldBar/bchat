@@ -59,6 +59,7 @@ const handleGameClick = async (game) => {
     // 发送POST请求
     const response = await axios.post(`${API_URL}/room?type=${game.type}`)
 
+    console.log(response)
     // 获取返回的roomId
     const roomId = response.data.id
 

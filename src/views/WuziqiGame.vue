@@ -4,18 +4,16 @@
 
     <!-- 场景切换 -->
     <div v-if="stage === 'lobby'">
-      <LobbyView
-        :roomId="roomId"
-        :memberLimit="2"
-        :me="me"
-        :members="members"
-        @set-position="(pos) => send({ action: 'set-position', position: pos })"
-        @change-self="handleChangeSelf"
-      />
-      <div>
+      <v-row>
+        <LobbyView :roomId="roomId" :memberLimit="2" :me="me" :members="members"
+          @set-position="(pos) => send({ action: 'lobby', subAction: 'changePosition', position: pos })"
+          @change-self="(me) => send({ action: 'lobby', subAction:'changeSelf', me: me })" />
+      </v-row>
+
+      <v-row>
         <v-btn color="primary" @click="send({ type: 'start-game' })">开始游戏</v-btn>
         <v-btn color="secondary" @click="send({ type: 'change-rule' })">修改规则</v-btn>
-      </div>
+      </v-row>
     </div>
 
     <div v-else-if="stage === 'ingame'">
@@ -32,6 +30,7 @@
 
 <script setup>
 /** @typedef {import('@/types.js').User} User */
+/** @typedef {import('@/types.js').Room} Room */
 /** @typedef {import('vue').Ref} Ref */
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
@@ -43,11 +42,17 @@ const route = useRoute()
 const roomId = ref(route.query.room || '')
 /** @type {Ref<User, User>} */
 const me = ref({}) // 当前用户信息
-const stage = ref('lobby') // 'lobby' | 'ingame'
+const stage = ref('lobby') // 'lobby' | 'ingame' | 'gameover'
 const members = ref([]) // 房间成员列表
 const { connect, send } = useWebSocket(roomId, me, {
   onMessage(data) {
     // 处理服务器消息
+    const action = data.action;
+    switch (action) {
+      case "init":
+        onMessageInit(data)
+        break;
+    }
     console.log('收到消息:', data)
   }
 })
@@ -56,6 +61,15 @@ onMounted(() => {
   me.value = getLocalUser()
   connect()
 })
+
+/**
+ * 
+ * @param {Object} data 
+ * @param {Room} data.room
+ */
+function onMessageInit(data) {
+
+}
 
 function setLocalUser({ uuid, name, avatar }) {
   localStorage.setItem('uuid', uuid)
@@ -70,7 +84,7 @@ function getLocalUser() {
 
   if (!uuid) uuid = crypto.randomUUID()
   if (!name) name = uuid.slice(-4)
-  if (!avatarStr) avatarStr = '{"i":"fa-user","color":"blue"}'
+  if (!avatarStr) avatarStr = '{"icon":"mdi-account","color":"primary"}'
 
   const avatar = JSON.parse(avatarStr)
 
