@@ -25,7 +25,7 @@
         <v-avatar v-for="(user, index) in spectators" :key="index" :color="user.color" size="40" class="mx-1">
           <v-img v-if="user.img" :src="user.img"></v-img>
           <v-icon v-if="user.icon" :icon="user.icon"></v-icon>
-          <span v-else="user.text">{{ user.text }}</span>
+          <span v-else>{{ user.text }}</span>
         </v-avatar>
       </v-row>
     </v-card>

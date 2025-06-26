@@ -63,12 +63,29 @@ onMounted(() => {
 })
 
 /**
- * 
  * @param {Object} data 
  * @param {Room} data.room
  */
 function onMessageInit(data) {
+  // 更新房间状态
+  if (data.room) {
+    // 更新游戏阶段
+    stage.value = data.room.stage || 'lobby'
 
+    // 更新成员列表
+    if (data.room.members) {
+      members.value = data.room.members
+
+      // 更新自己的信息（包括位置等）
+      const selfMember = members.value.find(m => m.uuid === me.value.uuid)
+      if (selfMember) {
+        me.value = {
+          ...me.value,
+          ...selfMember
+        }
+      }
+    }
+  }
 }
 
 function setLocalUser({ uuid, name, avatar }) {
