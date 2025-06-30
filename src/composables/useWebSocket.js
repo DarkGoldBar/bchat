@@ -50,7 +50,7 @@ export function useWebSocket(roomId, me, { onMessage, onOpen, onClose, onError }
     ws.value.onopen = (event) => {
       console.log('WebSocket connected')
       if (me) {
-        ws.value.send(JSON.stringify({ action: 'lobby', subAction: "join", user: me.value }, null, 0))
+        ws.value.send(JSON.stringify({ action: 'lobby', subAction: "join", user: me.value, room: roomId.value}, null, 0))
       }
       onOpen && onOpen(event)
     }
@@ -72,6 +72,7 @@ export function useWebSocket(roomId, me, { onMessage, onOpen, onClose, onError }
   }
 
   function send(data) {
+    data.room = roomId.value
     if (ws.value && ws.value.readyState === WebSocket.OPEN) {
       ws.value.send(JSON.stringify(data))
     }
