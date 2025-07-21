@@ -4,8 +4,8 @@ const baseWsUrl = process.env.VUE_APP_WS_API_URL
  * Establishes a WebSocket connection to a room.
  *
  * @param {string} roomId
- * @param {Object} me 
- * @param {Object} me.value 
+ * @param {Object} me
+ * @param {Object} me.value
  * @param {Object} [options] Options for the connection.
  * @param {function(event):void} [options.onMessage] Called when a message is received.
  * @param {function(event):void} [options.onOpen] Called when the connection is established.
@@ -24,25 +24,31 @@ export default function useWebSocket(roomId, me, { onMessage, onOpen, onClose, o
   function connect() {
     ws.value = new WebSocket(`${baseWsUrl}?room=${roomId}`)
 
-    ws.value.onopen = (event) => {
+    ws.value.onopen = event => {
       console.log('WebSocket connected')
       if (me) {
-        ws.value.send(JSON.stringify({ action: 'lobby', subAction: "join", user: me.value, room: roomId }, null, 0))
+        ws.value.send(
+          JSON.stringify(
+            { action: 'lobby', subAction: 'join', user: me.value, room: roomId },
+            null,
+            0
+          )
+        )
       }
       onOpen && onOpen(event)
     }
 
-    ws.value.onmessage = (event) => {
+    ws.value.onmessage = event => {
       const data = JSON.parse(event.data)
       onMessage && onMessage(data)
     }
 
-    ws.value.onclose = (event) => {
+    ws.value.onclose = event => {
       console.warn('WebSocket closed')
       onClose && onClose(event)
     }
 
-    ws.value.onerror = (event) => {
+    ws.value.onerror = event => {
       console.error('WebSocket error')
       onError && onError(event)
     }

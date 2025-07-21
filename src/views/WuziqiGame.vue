@@ -100,8 +100,7 @@ function onChangePosition(pos) {
     <div v-if="stage === 'lobby'">
       <v-row>
         <LobbyView :roomId="room.id" :posLimit="room.posLimit" :me="me" :members="room.members"
-          @set-position="onChangePosition"
-          @change-self="onChangeSelf" />
+          @set-position="onChangePosition" @change-self="onChangeSelf" />
       </v-row>
 
       <v-row>

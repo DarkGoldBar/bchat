@@ -1,4 +1,3 @@
-
 <script setup>
 /** @typedef {import('@/types.js').User} User */
 

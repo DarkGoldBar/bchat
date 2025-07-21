@@ -19,34 +19,13 @@ const githubIssuesUrl = ref('https://github.com/DarkGoldBar/bchat/issues')
 
             <!-- 技术徽章 -->
             <div class="my-4">
-              <v-img
-                src="https://img.shields.io/badge/Vue-3.x-brightgreen"
-                height="24"
-                class="mr-2"
-                inline
-              />
-              <v-img
-                src="https://img.shields.io/badge/Vuetify-3.x-blue"
-                height="24"
-                class="mr-2"
-                inline
-              />
-              <v-img
-                src="https://img.shields.io/badge/PWA-supported-orange"
-                height="24"
-                class="mr-2"
-                inline
-              />
+              <v-img src="https://img.shields.io/badge/Vue-3.x-brightgreen" height="24" class="mr-2" inline />
+              <v-img src="https://img.shields.io/badge/Vuetify-3.x-blue" height="24" class="mr-2" inline />
+              <v-img src="https://img.shields.io/badge/PWA-supported-orange" height="24" class="mr-2" inline />
             </div>
 
             <!-- 反馈按钮 -->
-            <v-btn
-              color="primary"
-              variant="outlined"
-              :href="githubIssuesUrl"
-              target="_blank"
-              class="mt-2"
-            >
+            <v-btn color="primary" variant="outlined" :href="githubIssuesUrl" target="_blank" class="mt-2">
               给我反馈
             </v-btn>
 

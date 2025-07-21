@@ -7,10 +7,10 @@ const router = useRouter()
 const API_URL = process.env.VUE_APP_API_URL
 
 const gamelist = ref([
-  { 
-    name: 'wuziqi', 
+  {
+    name: 'wuziqi',
     type: 'wuziqi',
-    route: '/wuziqi' 
+    route: '/wuziqi'
   },
 ])
 
@@ -22,26 +22,26 @@ const snackbarColor = ref('error')
 const handleGameClick = (game) => {
   fetch(`${API_URL}/room?type=${game.type}`, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'}
+    headers: { 'Content-Type': 'application/json' }
   })
-  .then((response) => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then((data) => {
-    router.push({
-      path: game.route,
-      query: { room: data.id }
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      router.push({
+        path: game.route,
+        query: { room: data.id }
+      });
+    })
+    .catch((error) => {
+      console.error('创建游戏房间失败:', error);
+      snackbarMessage.value = '无法创建游戏房间';
+      snackbarColor.value = 'error';
+      snackbar.value = true;
     });
-  })
-  .catch((error) => {
-    console.error('创建游戏房间失败:', error);
-    snackbarMessage.value = '无法创建游戏房间';
-    snackbarColor.value = 'error';
-    snackbar.value = true;
-  });
 };
 </script>
 
