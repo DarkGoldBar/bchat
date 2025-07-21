@@ -97,7 +97,7 @@ function onChangePosition(pos) {
     <h2>游戏房间{{ room.id }}</h2>
 
     <!-- 场景切换 -->
-    <div v-if="stage === 'lobby'">
+    <div v-if="room.stage === 'lobby'">
       <v-row>
         <LobbyView :roomId="room.id" :posLimit="room.posLimit" :me="me" :members="room.members"
           @set-position="onChangePosition" @change-self="onChangeSelf" />
@@ -109,7 +109,7 @@ function onChangePosition(pos) {
       </v-row>
     </div>
 
-    <div v-else-if="stage === 'ingame'">
+    <div v-else-if="room.stage === 'ingame'">
       <h3>游戏进行中</h3>
       <!-- 游戏进行中的内容 -->
       <p>这里可以放置游戏棋盘等内容。</p>

@@ -1,3 +1,5 @@
+import { ref, onBeforeUnmount } from 'vue'
+
 const baseWsUrl = import.meta.env.VITE_WS_URL
 
 /**
