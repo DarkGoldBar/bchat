@@ -1,4 +1,4 @@
-const baseWsUrl = process.env.VUE_APP_WS_API_URL
+const baseWsUrl = import.meta.env.VITE_WS_URL
 
 /**
  * Establishes a WebSocket connection to a room.

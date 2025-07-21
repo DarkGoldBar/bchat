@@ -4,7 +4,7 @@ import { ref } from 'vue'
 
 const router = useRouter()
 
-const API_URL = process.env.VUE_APP_API_URL
+const API_URL = import.meta.env.VITE_API_URL
 
 const gamelist = ref([
   {
@@ -49,7 +49,7 @@ const handleGameClick = (game) => {
   <v-container>
     <v-row class="text-center">
       <v-col cols="12">
-        <v-img :src="require('../assets/logo.png')" class="my-3" contain height="200" />
+        <v-img :src="'./logo.png'" class="my-3" contain height="200" />
       </v-col>
 
       <v-col class="mb-4">

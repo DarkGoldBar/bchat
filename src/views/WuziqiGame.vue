@@ -4,7 +4,7 @@
 
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import LobbyView from '../components/LobbyView.vue'
+import LobbyView from '../components/Lobby.vue'
 import useWebSocket from '../composables/useWebSocket'
 
 // 状态管理

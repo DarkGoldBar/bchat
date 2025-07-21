@@ -1,8 +1,15 @@
+# BChat
 ## Description 
 这个项目是一个使用 Javascript 语言的 Vue 3 + Vuetify 3 + Vue-Router 的单页面项目。
 
 代码规范：
 - 遵循let it crash原则，不需要过多的try-catch。
+
+## Envrion
+``` .env.local
+VUE_APP_API_URL=
+VUE_APP_WS_API_URL=
+```
 
 ## Vue 3 + Vite
 
