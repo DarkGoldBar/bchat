@@ -17,13 +17,16 @@ room.value.id = route.query.room || ''
 
 const { connect, send } = useWebSocket(room.value.id, me, {
   onMessage(data) {
+    console.log('收到消息:', data)
     const action = data.action;
     switch (action) {
-      case "init":
+      case 'init':
         onMessageInit(data)
-        break;
+        break
+      case 'userChangedPosition':
+        onMessagePosChange(data)
+        break
     }
-    console.log('收到消息:', data)
   }
 })
 
@@ -34,13 +37,19 @@ onMounted(() => {
 
 /**
  * @param {Object} data 
- * @param {Room} data.room
+ * @param {Room} 
  */
 function onMessageInit(data) {
   if (data.room) {
     room.value = data.room
     me.value = data.room.members.find(m => m.uuid === me.value.uuid)
   }
+}
+
+/** @param {{ user: User }} data  */
+function onMessagePosChange(data) {
+  const mem = room.value.members.find(m => m.uuid === data.user.uuid)
+  mem.position = data.user.position;
 }
 
 function setLocalUser({ uuid, name, avatar }) {
@@ -83,11 +92,11 @@ function onChangeSelf(name, icon, color) {
   })
 }
 
-function onChangePosition(pos) {
+function onChangePosition(position) {
   send({
     action: 'lobby',
     subAction: 'changePosition',
-    pos
+    position
   })
 }
 </script>

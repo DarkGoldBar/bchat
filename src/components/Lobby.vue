@@ -1,5 +1,6 @@
 <script setup>
 /** @typedef {import('@/types.js').User} User */
+import { defineProps, defineEmits, computed, ref } from 'vue'
 
 const props = defineProps({
   roomId: String,
@@ -26,15 +27,15 @@ function isMe(user) {
   return props.me && user.uuid === props.me.uuid
 }
 
-function handlePositionClick(pos) {
-  const user = positionMap.value[pos]
+function handlePositionClick(position) {
+  const user = positionMap.value[position]
   if (user && isMe(user)) {
     // 点击自己，弹出修改框
     editName.value = props.me.name
     editAvatar.value = props.me.avatar
     editDialog.value = true
   } else if (!user) {
-    emit('set-position', pos)
+    emit('set-position', position)
   }
 }
 
@@ -56,11 +57,11 @@ function confirmEdit() {
 
 <template>
   <div>
-    <h3 class="mb-2">房间等待界面（{{ roomId }}）</h3>
+    <h3 class="mb-2">选位界面</h3>
 
     <!-- 位置格子区域 -->
     <v-row class="mb-4" justify="center">
-      <v-col v-for="pos in memberLimit" :key="pos" cols="4" class="text-center">
+      <v-col v-for="pos in posLimit" :key="pos" cols="4" class="text-center">
         <v-card outlined class="pa-3" @click="handlePositionClick(pos)">
           <div v-if="positionMap[pos]">
             <v-avatar size="48" class="mx-auto mb-1">

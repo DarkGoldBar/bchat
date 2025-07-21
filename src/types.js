@@ -37,7 +37,7 @@
  * @property {string} type - 房间类型
  * @property {RoomStage} stage - 状态值
  * @property {number} posLimit - 玩家位置上限
- * @property {string[]} members - 房间成员对象的json字符串数组。
+ * @property {User[]} members - 房间成员对象的json字符串数组。
  * @property {string} body - 游戏数据
  * @property {number} createdAt - 创建时间
  * @property {number} ttl - 生存时间
