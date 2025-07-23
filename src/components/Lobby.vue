@@ -1,6 +1,6 @@
 <script setup>
-import UserAvatar from '@/components/UserAvatar.vue'
 /** @typedef {import('../types.js').User} User */
+import UserAvatar from '@/components/UserAvatar.vue'
 import { computed, ref } from 'vue'
 
 const props = defineProps({
@@ -51,6 +51,10 @@ function confirmEdit() {
   editDialog.value = false
   emit('change-self')
 }
+
+function isme(user) {
+  return user.uuid === props.me.uuid
+}
 </script>
 
 <template>
@@ -62,7 +66,7 @@ function confirmEdit() {
       <v-card class="pa-1 mb-3" @click="handlePositionClick(0)">
         <v-card-title>旁观</v-card-title>
         <v-card-text class="d-flex align-center justify-space-around">
-          <UserAvatar v-for="(user) in spectators" :avatar="user.avatar"/>
+          <UserAvatar v-for="(user) in spectators" :avatar="user.avatar" :color="isme(user) ? 'black' : ''"/>
         </v-card-text>
       </v-card>
     </v-col>
@@ -75,7 +79,7 @@ function confirmEdit() {
         <v-card-title> 位置 {{ pos }} </v-card-title>
         <v-card-text>
           <div v-if="positionMap[pos]">
-            <UserAvatar :avatar="positionMap[pos].avatar"/>
+            <UserAvatar :avatar="positionMap[pos].avatar" :color="isme(positionMap[pos]) ? 'black' : ''"/>
             <div>{{ positionMap[pos].name }}</div>
           </div>
           <div v-else>空位</div>

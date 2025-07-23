@@ -8,8 +8,12 @@ const props = defineProps({
   },
   size: {
     type: String,
-    default: '40',
-  } 
+    default: '64',
+  },
+  color: {
+    type: String,
+    default: '',
+  },
 })
 
 const hasValidIcon = computed(() => {
@@ -21,7 +25,7 @@ const hasValidIcon = computed(() => {
 <template>
   <v-avatar :color="avatar.color" size="size">
     <template v-if="hasValidIcon">
-      <v-icon :icon="avatar.icon" />
+      <v-icon :icon="avatar.icon" :color="color"/>
     </template>
     <template v-else>
       <span class="text-h5">{{ avatar.text }}</span>

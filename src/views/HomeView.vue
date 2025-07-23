@@ -61,10 +61,10 @@ const handleGameClick = (game) => {
       <v-col cols="12" class="mb-4">
         <v-img :src="'./logo.png'" class="my-3" contain height="200" />
         <p class="font-weight-regular">Welcome to BChat, a simple game application.</p>
-        <v-divider class="my-3"/>
+        <v-divider class="my-3" />
         <h3 class="text-h5">Quick Start:</h3>
       </v-col>
-  
+
       <v-col cols="4" class="mx-auto" v-for="game in gamelist" :key="game.name">
         <v-card link @click="handleGameClick(game)">
           <v-card-text>

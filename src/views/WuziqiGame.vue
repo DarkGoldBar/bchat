@@ -5,6 +5,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import LobbyView from '@/components/Lobby.vue'
+import WuziqiView from '@/components/Wuziqi.vue'
 import useWebSocket from '@/composables/useWebSocket'
 
 // 状态管理
@@ -43,6 +44,7 @@ function onMessageInit(data) {
   if (data.room) {
     room.value = data.room
     me.value = data.room.members.find(m => m.uuid === me.value.uuid)
+    setLocalUser(me.value)
   }
 }
 
@@ -112,7 +114,7 @@ function onChangePosition(position) {
         <v-btn class="mx-auto" color="primary" @click="send({ type: 'start-game' })">开始游戏</v-btn>
       </v-col>
       <v-col cols="4">
-        <v-btn color="secondary" @click="send({ type: 'change-rule' })">修改规则</v-btn>
+        <v-btn disabled color="secondary" @click="send({ type: 'change-rule' })">修改规则</v-btn>
       </v-col>
     </v-row>
     <v-row>
@@ -124,12 +126,10 @@ function onChangePosition(position) {
   </v-container>
 
   <v-container v-else-if="room.stage === 'ingame'">
-    <h3>游戏进行中</h3>
-    <!-- 游戏进行中的内容 -->
-    <p>这里可以放置游戏棋盘等内容。</p>
+    <WuziqiView :room="room" :me="me" />
   </v-container>
 
   <v-container v-else>
-    <p>加载中</p>
+    <WuziqiView :room="room" :me="me" />
   </v-container>
 </template>
