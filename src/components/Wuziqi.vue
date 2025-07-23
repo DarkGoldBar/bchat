@@ -1,5 +1,6 @@
 <script setup>
 import UserAvatar from '@/components/UserAvatar.vue'
+import { send } from 'vite'
 import { ref, reactive } from 'vue'
 
 // 玩家数据
@@ -20,31 +21,44 @@ const playerB = {
   },
 }
 
+defineProps({
+  send: {
+    type: Function,
+    required: true
+  },
+  room: {
+    type: Object,
+    required: true
+  },
+  me: {
+    type: Object,
+    required: true
+  },
+})
+
 const currentTurn = ref('A') // 当前回合玩家
 const rows = 11
 const cols = 11
 const cellSize = 500 / Math.max(rows, cols)
 
 /** @typedef {Object} Cell
- * @property {'' | 'A' | 'B'} value
+ * @property {number} value
  * @property {number} row
  * @property {number} col
  */
 
 /** @type {import ('vue').Reactive<Cell[]>} */
 const board = reactive(Array.from({ length: rows * cols }).map((_, index) => ({
-  value: '',
+  value: 0,
   row: Math.floor(index / cols),
   col: index % cols,
 })))
-board[0].value = 'A' // 初始位置示例
-board[1].value = 'B' // 初始位置示例
+board[0].value = 1 // 初始位置示例
+board[1].value = 2 // 初始位置示例
 
 // 落子逻辑
 function placePiece(pos) {
-  if (board[pos]) return
-  board[pos] = currentTurn.value
-  currentTurn.value = currentTurn.value === 'A' ? 'B' : 'A'
+
 }
 
 function handleUndo() {

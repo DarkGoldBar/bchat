@@ -1,12 +1,16 @@
 <script setup>
-/** @typedef {import('@/types.js').User} User */
-/** @typedef {import('@/types.js').Room} Room */
+/** @typedef {import('../types.js').User} User */
+/** @typedef {import('../types.js').Room} Room */
 
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import LobbyView from '@/components/Lobby.vue'
 import WuziqiView from '@/components/Wuziqi.vue'
 import useWebSocket from '@/composables/useWebSocket'
+
+const snackbar = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('error')
 
 // 状态管理
 const route = useRoute()
@@ -100,6 +104,20 @@ function onChangePosition(position) {
     position
   })
 }
+
+function onClickStart() {
+  const isReady = room.value.members.filter(m => m.position > 0).length === room.value.posLimit
+  if (!isReady) {
+    snackbarMessage.value = '请所有位置占满后再开始游戏';
+    snackbarColor.value = 'error';
+    snackbar.value = true;
+  } else {
+    send({
+      action: 'wuziqi',
+      subAction: 'startGame'
+    })
+  }
+}
 </script>
 
 <template>
@@ -111,10 +129,10 @@ function onChangePosition(position) {
     </v-row>
     <v-row justify="center">
       <v-col cols="4">
-        <v-btn class="mx-auto" color="primary" @click="send({ type: 'start-game' })">开始游戏</v-btn>
+        <v-btn class="mx-auto" color="primary" @click="onClickStart">开始游戏</v-btn>
       </v-col>
       <v-col cols="4">
-        <v-btn disabled color="secondary" @click="send({ type: 'change-rule' })">修改规则</v-btn>
+        <v-btn disabled color="secondary" @click="send({ action: 'lobby', subAction: 'changeRule' })">修改规则</v-btn>
       </v-col>
     </v-row>
     <v-row>
@@ -132,4 +150,8 @@ function onChangePosition(position) {
   <v-container v-else>
     <WuziqiView :room="room" :me="me" />
   </v-container>
+
+  <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000">
+    {{ snackbarMessage }}
+  </v-snackbar>
 </template>
