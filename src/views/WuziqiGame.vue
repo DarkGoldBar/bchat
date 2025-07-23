@@ -1,11 +1,11 @@
 <script setup>
-/** @typedef {import('../types.js').User} User */
-/** @typedef {import('../types.js').Room} Room */
+/** @typedef {import('@/types.js').User} User */
+/** @typedef {import('@/types.js').Room} Room */
 
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import LobbyView from '../components/Lobby.vue'
-import useWebSocket from '../composables/useWebSocket'
+import LobbyView from '@/components/Lobby.vue'
+import useWebSocket from '@/composables/useWebSocket'
 
 // 状态管理
 const route = useRoute()
@@ -102,8 +102,12 @@ function onChangePosition(position) {
 </script>
 
 <template>
-  <v-container class="pa-4">
-    <h2>游戏房间{{ room.id }}</h2>
+  <v-container>
+    <v-row>
+      <v-col>
+        <h2>游戏房间{{ room.id }}</h2>
+      </v-col>
+
 
     <!-- 场景切换 -->
     <div v-if="room.stage === 'lobby'">
@@ -127,5 +131,7 @@ function onChangePosition(position) {
     <div v-else>
       <p>状态异常</p>
     </div>
+    </v-row>
+    
   </v-container>
 </template>

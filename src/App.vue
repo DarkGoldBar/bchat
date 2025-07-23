@@ -9,7 +9,7 @@ if (import.meta.env.MODE === 'development') {
 </script>
 
 <template>
-  <v-app class="h-screen">
+  <v-app>
     <v-app-bar app color="primary" dark>
       <v-app-bar-nav-icon @click="drawer = !drawer" />
       <v-toolbar-title>BChat</v-toolbar-title>

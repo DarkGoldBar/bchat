@@ -15,14 +15,18 @@
  */
 
 /**
+ * @typedef {Object} Avatar
+ * @property {string} icon
+ * @property {string} text
+ * @property {string} color
+ * @property {string} img
+ */
+
+/**
  * @typedef {Object} User
  * @property {string} uuid - 用户唯一标识
  * @property {string} name - 用户名
- * @property {Object} avatar - 用户头像
- * @property {string} avatar.icon -
- * @property {string} avatar.text -
- * @property {string} avatar.color -
- * @property {string} avatar.img -
+ * @property {Avatar} avatar - 用户头像
  * @property {string} [connectId] - 连接ID。
  * @property {number} [position] - 房间中的位置。0为观众位，观众位可以重复，其他位置不可重复。不能大于房间的最大位置。
  */

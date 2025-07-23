@@ -1,4 +1,5 @@
 <script setup>
+import UserAvatar from '@/components/UserAvatar.vue'
 /** @typedef {import('@/types.js').User} User */
 import { computed, ref } from 'vue'
 
@@ -15,6 +16,7 @@ const emit = defineEmits(['set-position', 'change-self'])
 const positionMap = computed(() => {
   const map = {}
   for (const user of props.members) {
+    user.avatar.text = user.name[0] + user.name[1];
     if (user.position > 0) map[user.position] = user
   }
   return map
@@ -59,33 +61,32 @@ function confirmEdit() {
   <div>
     <h3 class="mb-2">选位界面</h3>
 
+    <!-- 旁观位 -->
+    <v-card class="pa-2 mb-3" @click="emit('set-position', 0)">
+      <v-card-title>旁观位</v-card-title>
+      <v-card-text>
+        <div class="d-flex align-center justify-space-around">
+          <UserAvatar v-for="(user) in spectators" :avatar="user.avatar"/>
+        </div>
+      </v-card-text>
+    </v-card>
+    
     <!-- 位置格子区域 -->
     <v-row class="mb-4" justify="center">
-      <v-col v-for="pos in posLimit" :key="pos" cols="4" class="text-center">
-        <v-card outlined class="pa-3" @click="handlePositionClick(pos)">
-          <div v-if="positionMap[pos]">
-            <v-avatar size="48" class="mx-auto mb-1">
-              <v-img :src="positionMap[pos].avatar" />
-            </v-avatar>
-            <div>{{ positionMap[pos].name }}</div>
-            <div v-if="isMe(positionMap[pos])">(你)</div>
-          </div>
-          <div v-else>空位（{{ pos }}）</div>
+      <v-col v-for="pos in posLimit" :key="pos">
+        <v-card outlined @click="handlePositionClick(pos)">
+          <v-card-title> 位置 {{ pos }} </v-card-title>
+          <v-card-text>
+            <div v-if="positionMap[pos]">
+              <UserAvatar :avatar="positionMap[pos].avatar"/>
+              <div>{{ positionMap[pos].name }}</div>
+              <div v-if="isMe(positionMap[pos])">(你)</div>
+            </div>
+            <div v-else>空位</div>
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
-
-    <!-- 观众区域 -->
-    <v-card class="pa-2 mb-3" @click="emit('set-position', 0)">
-      <div class="text-subtitle-2 mb-1">观众区（点击加入）</div>
-      <v-row>
-        <v-avatar v-for="(user, index) in spectators" :key="index" :color="user.color" size="40" class="mx-1">
-          <v-img v-if="user.img" :src="user.img"></v-img>
-          <v-icon v-if="user.icon" :icon="user.icon"></v-icon>
-          <span v-else>{{ user.text }}</span>
-        </v-avatar>
-      </v-row>
-    </v-card>
 
     <!-- 编辑弹窗 -->
     <v-dialog v-model="editDialog" max-width="400">

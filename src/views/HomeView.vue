@@ -12,6 +12,16 @@ const gamelist = ref([
     type: 'wuziqi',
     route: '/wuziqi'
   },
+  {
+    name: 'dummy1',
+    type: 'dummy1',
+    route: '/dummy1'
+  },
+  {
+    name: 'dummy2',
+    type: 'dummy2',
+    route: '/dummy2'
+  },
 ])
 
 const snackbar = ref(false)
@@ -48,30 +58,25 @@ const handleGameClick = (game) => {
 <template>
   <v-container>
     <v-row class="text-center">
-      <v-col cols="12">
+      <v-col cols="12" class="mb-4">
         <v-img :src="'./logo.png'" class="my-3" contain height="200" />
+        <p class="font-weight-regular">Welcome to BChat, a simple game application.</p>
+        <v-divider class="my-3"/>
+        <h3 class="text-h5">Quick Start:</h3>
       </v-col>
-
-      <v-col class="mb-4">
-        <h1 class="display-2 font-weight-bold mb-3">欢迎来到 BChat</h1>
-        <p class="subheading font-weight-regular">Welcome to BChat, a simple game application.</p>
-      </v-col>
-
-      <!-- 游戏列表 -->
-      <v-col cols="12" md="6" class="mx-auto">
-        <v-card>
-          <v-card-title>Create a game room</v-card-title>
-          <v-list nav dense>
-            <v-list-item v-for="game in gamelist" :key="game.name" link @click="handleGameClick(game)">
-              {{ game.name }}
-              <v-list-item-title>{{ game.name }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
+  
+      <v-col cols="4" class="mx-auto" v-for="game in gamelist" :key="game.name">
+        <v-card link @click="handleGameClick(game)">
+          <v-card-text>
+            {{ game.name }}
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
+
     <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000">
       {{ snackbarMessage }}
     </v-snackbar>
+
   </v-container>
 </template>
