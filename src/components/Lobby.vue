@@ -1,6 +1,6 @@
 <script setup>
 import UserAvatar from '@/components/UserAvatar.vue'
-/** @typedef {import('@/types.js').User} User */
+/** @typedef {import('../types.js').User} User */
 import { computed, ref } from 'vue'
 
 const props = defineProps({
@@ -25,36 +25,31 @@ const positionMap = computed(() => {
 /** @type {User[]} */
 const spectators = computed(() => props.members.filter((m) => m.position === 0))
 
-function isMe(user) {
-  return props.me && user.uuid === props.me.uuid
-}
-
 // 编辑框
 const editDialog = ref(false)
 const editName = ref('')
 const editIcon = ref('')
 const editColor = ref('')
 
+
 function handlePositionClick(position) {
-  const user = positionMap.value[position]
-  if (user && isMe(user)) {
-    // 点击自己，弹出修改框
+  if (position === props.me.position) {
     editName.value = props.me.name
-    editIcon.value = props.me.icon
-    editColor.value = props.me.color
+    editIcon.value = props.me.avatar.icon
+    editColor.value = props.me.avatar.color
     editDialog.value = true
-  } else if (!user) {
+  } else if (!positionMap.value[position]) {
     emit('set-position', position)
   }
 }
 
+
 function confirmEdit() {
-  emit('change-self', {
-    name: editName.value,
-    icon: editIcon.value,
-    color: editColor.value
-  })
+  props.me.name = editName.value
+  props.me.avatar.icon = editIcon.value
+  props.me.avatar.color = editColor.value
   editDialog.value = false
+  emit('change-self')
 }
 </script>
 
@@ -64,7 +59,7 @@ function confirmEdit() {
   <!-- 旁观位 -->
   <v-row justify="center">
     <v-col cols="10">
-      <v-card class="pa-1 mb-3" @click="emit('set-position', 0)">
+      <v-card class="pa-1 mb-3" @click="handlePositionClick(0)">
         <v-card-title>旁观</v-card-title>
         <v-card-text class="d-flex align-center justify-space-around">
           <UserAvatar v-for="(user) in spectators" :avatar="user.avatar"/>
@@ -82,7 +77,6 @@ function confirmEdit() {
           <div v-if="positionMap[pos]">
             <UserAvatar :avatar="positionMap[pos].avatar"/>
             <div>{{ positionMap[pos].name }}</div>
-            <div v-if="isMe(positionMap[pos])">(你)</div>
           </div>
           <div v-else>空位</div>
         </v-card-text>

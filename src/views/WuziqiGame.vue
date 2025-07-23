@@ -81,15 +81,13 @@ function getLocalUser() {
   }
 }
 
-function onChangeSelf(name, icon, color) {
-  me.value.name = name
-  me.value.avatar.icon = icon
-  me.value.avatar.color = color
+
+function onChangeSelf() {
   setLocalUser(me)
   send({
     action: 'lobby',
     subAction: 'changeSelf',
-    me
+    me: me.value
   })
 }
 
