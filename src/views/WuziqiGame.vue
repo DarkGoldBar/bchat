@@ -62,12 +62,13 @@ function getLocalUser() {
   let uuid = localStorage.getItem('uuid')
   let name = localStorage.getItem('name')
   let avatarStr = localStorage.getItem('avatar')
+  let avatar = {}
 
-  if (!uuid) uuid = crypto.randomUUID()
-  if (!name) name = uuid.slice(-4)
-  if (!avatarStr) avatarStr = '{"icon":"mdi-account","color":"primary"}'
+  if (!uuid || uuid === 'undefined') uuid = crypto.randomUUID()
+  if (!name || name === 'undefined') name = uuid.slice(-4)
+  if (!avatarStr || avatarStr === 'undefined') avatarStr = '{"icon":"mdi-account","color":"#42a5f5"}'
 
-  const avatar = JSON.parse(avatarStr)
+  avatar = JSON.parse(avatarStr)
 
   setLocalUser({ uuid, name, avatar })
 
@@ -102,36 +103,35 @@ function onChangePosition(position) {
 </script>
 
 <template>
-  <v-container>
-    <v-row>
+  <v-container v-if="room.stage === 'lobby'">
+    <v-row justify="center" class="text-center">
       <v-col>
         <h2>游戏房间{{ room.id }}</h2>
       </v-col>
-
-
-    <!-- 场景切换 -->
-    <div v-if="room.stage === 'lobby'">
-      <v-row>
+    </v-row>
+    <v-row justify="center">
+      <v-col cols="4">
+        <v-btn class="mx-auto" color="primary" @click="send({ type: 'start-game' })">开始游戏</v-btn>
+      </v-col>
+      <v-col cols="4">
+        <v-btn color="secondary" @click="send({ type: 'change-rule' })">修改规则</v-btn>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
         <LobbyView :roomId="room.id" :posLimit="room.posLimit" :me="me" :members="room.members"
           @set-position="onChangePosition" @change-self="onChangeSelf" />
-      </v-row>
-
-      <v-row>
-        <v-btn color="primary" @click="send({ type: 'start-game' })">开始游戏</v-btn>
-        <v-btn color="secondary" @click="send({ type: 'change-rule' })">修改规则</v-btn>
-      </v-row>
-    </div>
-
-    <div v-else-if="room.stage === 'ingame'">
-      <h3>游戏进行中</h3>
-      <!-- 游戏进行中的内容 -->
-      <p>这里可以放置游戏棋盘等内容。</p>
-    </div>
-
-    <div v-else>
-      <p>状态异常</p>
-    </div>
+      </v-col>
     </v-row>
-    
+  </v-container>
+
+  <v-container v-else-if="room.stage === 'ingame'">
+    <h3>游戏进行中</h3>
+    <!-- 游戏进行中的内容 -->
+    <p>这里可以放置游戏棋盘等内容。</p>
+  </v-container>
+
+  <v-container v-else>
+    <p>加载中</p>
   </v-container>
 </template>
