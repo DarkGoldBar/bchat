@@ -7,8 +7,8 @@
 
 ## Envrion
 ``` .env.local
-VUE_APP_API_URL=
-VUE_APP_WS_API_URL=
+VITE_API_URL=
+VITE_WS_URL=
 ```
 
 ## Vue 3 + Vite

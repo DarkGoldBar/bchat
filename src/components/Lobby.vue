@@ -1,6 +1,6 @@
 <script setup>
 /** @typedef {import('@/types.js').User} User */
-import { defineProps, defineEmits, computed, ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   roomId: String,

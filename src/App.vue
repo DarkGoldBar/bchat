@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 const drawer = ref(false)
 
-if (import.meta.env.NODE_ENV === 'development') {
+if (import.meta.env.MODE === 'development') {
   console.log('开发模式。', import.meta.env)
 }
 </script>
