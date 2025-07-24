@@ -1,7 +1,20 @@
 <script setup>
-import { ref } from 'vue'
+import { provide, ref } from 'vue'
 
 const drawer = ref(false)
+
+const snackbar = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('error')
+
+function snackbarCall(msg, color) {
+  snackbar.value = true
+  snackbarMessage = msg
+  snackbarColor = color
+  console.log(color, msg)
+}
+
+provide('snackbarCall', snackbarCall)
 
 if (import.meta.env.MODE === 'development') {
   console.log('开发模式。', import.meta.env)
@@ -25,5 +38,9 @@ if (import.meta.env.MODE === 'development') {
     <v-main class="h-100 overflow-hidden">
       <router-view />
     </v-main>
+
+    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000">
+      {{ snackbarMessage }}
+    </v-snackbar>
   </v-app>
 </template>

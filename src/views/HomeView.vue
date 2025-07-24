@@ -1,10 +1,12 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 
 const router = useRouter()
 
 const API_URL = import.meta.env.VITE_API_URL
+
+const snackbarCall = inject('snackbarCall')
 
 const gamelist = ref([
   {
@@ -23,10 +25,6 @@ const gamelist = ref([
     route: '/dummy2'
   },
 ])
-
-const snackbar = ref(false)
-const snackbarMessage = ref('')
-const snackbarColor = ref('error')
 
 // 处理游戏点击事件
 const handleGameClick = (game) => {
@@ -47,10 +45,7 @@ const handleGameClick = (game) => {
       });
     })
     .catch((error) => {
-      console.error('创建游戏房间失败:', error);
-      snackbarMessage.value = '无法创建游戏房间';
-      snackbarColor.value = 'error';
-      snackbar.value = true;
+      snackbarCall('创建游戏房间失败:', 'error')
     });
 };
 </script>
@@ -73,10 +68,5 @@ const handleGameClick = (game) => {
         </v-card>
       </v-col>
     </v-row>
-
-    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000">
-      {{ snackbarMessage }}
-    </v-snackbar>
-
   </v-container>
 </template>
