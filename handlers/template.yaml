@@ -1,0 +1,208 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: BChat backend powered by AWS SAM
+
+Parameters:
+  StageName:
+    Type: String
+    Default: "prod"
+
+Globals:
+  Api:
+    EndpointConfiguration: REGIONAL
+  Function:
+    Timeout: 10
+    Runtime: nodejs20.x
+    MemorySize: 256
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        TABLE_ROOM: RoomsTable
+
+Resources:
+  SharedFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: TableAndWebSocketAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                Resource:
+                  - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RoomsTable}
+              - Effect: Allow
+                Action:
+                  - execute-api:*
+                Resource:
+                  - !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${BChatWebSocketApi}/*/@connections/*
+
+  ##############################
+  # WebSocket API
+  ##############################
+  BChatWebSocketApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: BChatWebSocketAPI
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.action"
+
+  WebSocketHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: websocket.handler
+      Timeout: 10
+      Role: !GetAtt SharedFunctionRole.Arn
+      Environment:
+        Variables:
+          WEBSOCKET_EP:
+            Fn::Sub:
+              - "https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+              - ApiId: !Ref BChatWebSocketApi
+
+  WebSocketPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - BChatWebSocketApi
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref WebSocketHandlerFunction
+      Principal: apigateway.amazonaws.com
+
+  WebSocketIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref BChatWebSocketApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${WebSocketHandlerFunction.Arn}/invocations
+      IntegrationMethod: POST
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref BChatWebSocketApi
+      RouteKey: $connect
+      Target: !Join ["/", ["integrations", !Ref WebSocketIntegration]]
+
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref BChatWebSocketApi
+      RouteKey: $disconnect
+      Target: !Join ["/", ["integrations", !Ref WebSocketIntegration]]
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref BChatWebSocketApi
+      RouteKey: $default
+      Target: !Join ["/", ["integrations", !Ref WebSocketIntegration]]
+
+  LobbyRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref BChatWebSocketApi
+      RouteKey: lobby
+      Target: !Join ["/", ["integrations", !Ref WebSocketIntegration]]
+
+  WuziqiRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref BChatWebSocketApi
+      RouteKey: wuziqi
+      Target: !Join ["/", ["integrations", !Ref WebSocketIntegration]]
+
+  WebSocketDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      - ConnectRoute
+      - DisconnectRoute
+      - DefaultRoute
+      - LobbyRoute
+      - WuziqiRoute
+    Properties:
+      ApiId: !Ref BChatWebSocketApi
+
+  BChatWebSocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: !Ref StageName
+      AutoDeploy: true
+      DeploymentId: !Ref WebSocketDeployment
+      ApiId: !Ref BChatWebSocketApi
+
+  ##############################
+  # HTTP REST API Functions
+  ##############################
+  HttpRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+      Cors:
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'" 
+        AllowMethods: "'POST'"
+        AllowOrigin: "'*'"
+
+  RoomHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: http.handler
+      Role: !GetAtt SharedFunctionRole.Arn
+      Events:
+        Room:
+          Type: Api
+          Properties:
+            RestApiId: !Ref HttpRestApi
+            Path: /room
+            Method: POST
+            # Auth:
+            #   ApiKeyRequired: false
+
+  ##############################
+  # DynamoDB Tables
+  ##############################
+
+  RoomsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: RoomsTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+Outputs:
+  WebSocketURL:
+    Description: "WebSocket API URL"
+    Value: !Sub "wss://${BChatWebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"
+
+  RestApiUrl:
+    Description: "Base URL for REST API"
+    Value: !Sub "https://${HttpRestApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}"

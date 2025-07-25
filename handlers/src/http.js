@@ -7,7 +7,7 @@ const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
 const ddbClient = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(ddbClient);
 
-const ROOMS_TABLE = process.env.ROOMS_TABLE;
+const TABLE_ROOM = process.env.TABLE_ROOM;
 const MAX_RETRIES = 3;
 const ROOMID_LEN = 4;
 
@@ -46,7 +46,7 @@ async function createRoom(type) {
     try {
       await dynamo.send(
         new PutCommand({
-          TableName: ROOMS_TABLE,
+          TableName: TABLE_ROOM,
           Item: room,
           ConditionExpression: "attribute_not_exists(id)",
         })
