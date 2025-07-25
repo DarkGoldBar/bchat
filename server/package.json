@@ -1,7 +1,11 @@
 {
-  "name": "vue-proj-server",
+  "name": "@bchat/server",
+  "author": "DarkGoldBar",
   "version": "1.0.0",
   "type": "module",
+  "private": true,
+  "license": "MIT",
+  "main": "src/main.js",
   "scripts": {
     "start": "node src/main.js"
   },

@@ -1,8 +1,8 @@
 {
-  "name": "bchat-backend",
-  "version": "1.0.0",
-  "description": "websocket + http Handlers",
+  "name": "@bchat/handlers",
   "author": "DarkGoldBar",
+  "version": "1.0.0",
+  "private": true,
   "license": "MIT",
   "dependencies": {
     "@aws-sdk/client-apigatewaymanagementapi": "^3.823.0",
