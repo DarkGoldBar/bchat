@@ -1,31 +1,26 @@
 <script setup>
-import UserAvatar from '@/components/UserAvatar.vue'
-import { send } from 'vite'
-import { ref, reactive } from 'vue'
+/** @typedef {import('../types.js').Room} Room */
+/** @typedef {import('../types.js').User} User */
 
-// 玩家数据
-const playerA = {
-  name: 'Alice',
-  avatar: {
-    icon: 'mdi-ghost',
-    text: 'A',
-    color: 'primary',
-  },
-}
-const playerB = {
-  name: 'Bob',
-  avatar: {
-    icon: 'mdi-axe',
-    text: 'B',
-    color: 'secondary',
-  },
-}
+/** @typedef {Object} Cell
+ * @property {number} value
+ * @property {number} row
+ * @property {number} col
+ */
 
-defineProps({
-  send: {
-    type: Function,
-    required: true
-  },
+import UserAvatar from '../components/UserAvatar.vue'
+import { computed, ref } from 'vue'
+
+const snackbarCall = inject('snackbarCall')
+
+/**
+ * @type {{
+    readonly room: Room;
+    readonly me: User;
+    readonly send: (data: unknown)=>void;
+  }}
+ */
+const props = defineProps({
   room: {
     type: Object,
     required: true
@@ -34,27 +29,15 @@ defineProps({
     type: Object,
     required: true
   },
+  send: {
+    type: Function,
+    required: true
+  }
 })
 
-const currentTurn = ref('A') // 当前回合玩家
-const rows = 11
-const cols = 11
-const cellSize = 500 / Math.max(rows, cols)
-
-/** @typedef {Object} Cell
- * @property {number} value
- * @property {number} row
- * @property {number} col
- */
-
-/** @type {import ('vue').Reactive<Cell[]>} */
-const board = reactive(Array.from({ length: rows * cols }).map((_, index) => ({
-  value: 0,
-  row: Math.floor(index / cols),
-  col: index % cols,
-})))
-board[0].value = 1 // 初始位置示例
-board[1].value = 2 // 初始位置示例
+const p1 = computed(() => props.room.members.find(m => m.position === 1))
+const p2 = computed(() => props.room.members.find(m => m.position === 2))
+const board = computed(() => JSON.parse(props.room.body))
 
 // 落子逻辑
 function placePiece(pos) {
