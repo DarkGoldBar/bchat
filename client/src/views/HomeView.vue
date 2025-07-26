@@ -41,7 +41,7 @@ const handleGameClick = (game) => {
     .then((data) => {
       router.push({
         path: game.route,
-        query: { room: data.id }
+        query: { room: data.roomId }
       });
     })
     .catch((error) => {

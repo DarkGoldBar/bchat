@@ -140,6 +140,7 @@ async function broadcastMessage(room, payload) {
 }
 
 module.exports = {
+  name: "aws",
   putUser,
   putRoom,
   getAndDeleteUser,

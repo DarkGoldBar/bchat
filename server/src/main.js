@@ -2,10 +2,10 @@ import { injectInterface } from '@bchat/handlers/src/interface.js';
 import * as local from './local.js';
 injectInterface(local);
 
-import { createHttpServer } from './http.js';
-import { createWebSocketServer } from './websocket.js';
+async function startServers() {
+  const { createHttpServer } = await import('./http.js');
+  const { createWebSocketServer } = await import('./websocket.js');
 
-function startServers() {
   const httpServer = createHttpServer();
   const { wsServer, wsManageServer } = createWebSocketServer();
 

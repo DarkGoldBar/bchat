@@ -10,6 +10,8 @@ await redis.connect(); // 确保连接在调用之前建立
 
 const TABLE_ROOM = 'room:'; // Redis 中的 key 前缀
 
+export const name = 'local';
+
 /** @type { import('@bchat/handlers/src/awsImplement.js').putRoom } */
 export async function putRoom(room, checkVersion = false, checkUnique = false) {
   const key = TABLE_ROOM + room.id;

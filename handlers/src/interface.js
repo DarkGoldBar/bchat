@@ -18,6 +18,7 @@ function getInterface() {
   if (!impl) {
     impl = require('./awsImplement.js');
   }
+  console.log('Using implementation:', impl.name)
   return impl;
 }
 

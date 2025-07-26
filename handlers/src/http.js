@@ -40,6 +40,10 @@ async function createRoom(type) {
     room.id = generateRandomBase62String(ROOMID_LEN);
     try {
       await impl.putRoom(room, false, true);
+      return response(200, {
+        message: "Room created successfully",
+        roomId: room.id,
+      });
     } catch (error) {
       if (error.name !== "ConditionalCheckFailedException") throw error
     }

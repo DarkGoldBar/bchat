@@ -1,9 +1,16 @@
 import express from 'express';
+import cors from 'cors';
 import * as httpHandler from '@bchat/handlers/src/http.js';
 
 export function createHttpServer() {
   const app = express();
   const port = process.env.PORT || 3000;
+
+  app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
 
   // 解析 JSON 和 URL 编码的请求体
   app.use(express.json());
@@ -30,13 +37,9 @@ export function createHttpServer() {
       const result = await httpHandler.handler(event, context);
 
       if (result.headers) {
-        Object.entries(result.headers).forEach(([key, value]) => {
-          res.set(key, value);
-        });
+        Object.entries(result.headers).forEach(([key, value]) => res.set(key, value));
       }
-      res.status(result.statusCode || 200);
-
-      res.send(result.body);
+      res.status(result.statusCode || 200).json(result.body || {});
     } catch (error) {
       console.error('Error processing request:', error);
       res.status(500).json({
