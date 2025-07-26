@@ -10,7 +10,7 @@ import useComm from '../composables/useComm'
 
 const snackbarCall = inject('snackbarCall')
 const route = useRoute()
-const comm = useComm(route.query.room)
+const comm = useComm(route.query.roomId)
 const room = ref(comm.room)
 const me = comm.me
 const send = comm.send

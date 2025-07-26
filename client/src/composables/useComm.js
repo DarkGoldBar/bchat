@@ -14,13 +14,13 @@ export default function useComm(roomId) {
   const room = ref({})
 
   function connect(onData, onClose, onError) {
-    if (!WS_URL || !roomId) return;
-    ws = new WebSocket(`${WS_URL}?room=${roomId}`)
+    if (!WS_URL || !roomId) throw new Error('WebSocket URL or roomId is not defined', WS_URL, roomId)
+    ws = new WebSocket(`${WS_URL}?roomId=${roomId}`)
 
     ws.onopen = () => {
       console.log('WebSocket connected')
       if (me) {
-        ws.send(JSON.stringify({ action: 'join', me }))
+        send({ route: 'join', me })
       }
     }
 

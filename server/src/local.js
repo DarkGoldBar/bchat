@@ -34,3 +34,16 @@ export async function getAndDeleteUser(connectId) {
   return { $metadata: { httpStatusCode: 200 }, Item };
 }
 
+/** @type { import('@bchat/handlers/src/awsImplement.js').getRoomAndUser } */
+export async function getRoomAndUser(roomId, connectId) {
+  const key = TABLE_ROOM + roomId;
+  const roomData = await redis.get(key);
+  if (!roomData) {
+    throw new Error(`Room with id ${roomId} not found`);
+  } 
+  const room = JSON.parse(roomData);
+  room.members = room.members.map(s => JSON.parse(s))
+  const user = room.members.find(m => m.connectId === connectId) ?? { connectId }
+  return { room, user }
+}
+

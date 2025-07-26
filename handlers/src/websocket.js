@@ -16,7 +16,7 @@ module.exports.handler = async (event) => {
   const route = body.route || requestContext.routeKey
   const action = body.action
   const queryParams = event.queryStringParameters || {}
-  const roomId = queryParams.room || body.room
+  const roomId = queryParams.roomId || body.roomId
   console.log(`READ route=${route};action=${action};roomId=${roomId};connectId=${connectId};body=${event.body}`)
 
   for (let trials = 0; trials < MAX_RETRIES; trials++) {
@@ -33,7 +33,7 @@ module.exports.handler = async (event) => {
 async function router(route, action, roomId, connectId, body) {
   if (route === '$connect') return await handleConnect(connectId, roomId)
   if (route === '$disconnect') return await handleDisconnect(connectId)
-  const { room, user } = await getRoomAndUser(roomId, connectId)
+  const { room, user } = await impl.getRoomAndUser(roomId, connectId)
   if (route === 'join') return await handleJoin(room, user, body)
   if (route === 'message') return await handleMessage(room, user, body)
   if (route === 'lobby') return await lobbyHandler(action, room, user, body)
@@ -50,7 +50,7 @@ async function handleConnect(connectId, roomId) {
   if (!roomId) {
     throw new Error(`Invalid param`)
   }
-  await db.putUser(connectId, roomId)
+  await impl.putUser(connectId, roomId)
 }
 
 /**
@@ -76,10 +76,10 @@ async function handleJoin(room, user, body) {
  * @param {string} connectId
  */
 async function handleDisconnect(connectId) {
-  const result = await db.deleteUser(connectId)
+  const result = await impl.getAndDeleteUser(connectId)
   if (!result.Item) throw new Error(`User not found: ${connectId}`)
   const roomId = result.Item.body
-  const { room, user } = await db.getRoomAndUser(roomId, connectId)
+  const { room, user } = await impl.getRoomAndUser(roomId, connectId)
   // 通知对应的hander
   if (room.stage === 'lobby') {
     await lobbyHandler('leave', room, user)
@@ -104,11 +104,11 @@ async function handleMessage(room, user, body) {
   const payload = { sender: user.uuid, message }
 
   if (!sendto) {
-    await ws.broadcast(room, payload)
+    await impl.broadcastMessage(room, payload)
   } else {
     const target = room.members.find(m => m.uuid === body.sendto)
     if (target) {
-      await ws.send(target, payload)
+      await impl.sendMessage(target, payload)
     } else {
       throw new Error(`Invalid sendto: ${body.sendto}`)
     }       
