@@ -1,6 +1,5 @@
-// src/http.js
 import express from 'express';
-import { handler } from '../functions/httpHandler/app.js';
+import * as httpHandler from '@bchat/handlers/src/http.js';
 
 export function createHttpServer() {
   const app = express();
@@ -28,7 +27,7 @@ export function createHttpServer() {
     };
 
     try {
-      const result = await handler(event, context);
+      const result = await httpHandler.handler(event, context);
 
       if (result.headers) {
         Object.entries(result.headers).forEach(([key, value]) => {

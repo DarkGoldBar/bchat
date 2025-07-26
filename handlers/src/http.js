@@ -1,16 +1,12 @@
-/** @typedef {import('../types.js').Room} Room */
+/** @typedef {import('@bchat/types').Room} Room */
 
-const { PutCommand } = require("@aws-sdk/lib-dynamodb");
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
-
-const ddbClient = new DynamoDBClient({});
-const dynamo = DynamoDBDocumentClient.from(ddbClient);
-
-const TABLE_ROOM = process.env.TABLE_ROOM;
 const MAX_RETRIES = 3;
 const ROOMID_LEN = 4;
 
+const { getInterface } = require('./interface.js');
+const impl = getInterface();
+
+/** @type {import('aws-lambda').APIGatewayProxyHandler} */
 module.exports.handler = async (event) => {
   const queryParams = event.queryStringParameters || {};
 
@@ -42,18 +38,10 @@ async function createRoom(type) {
 
   for (let attempts = 0; attempts < MAX_RETRIES; attempts++) {
     room.id = generateRandomBase62String(ROOMID_LEN);
-
     try {
-      await dynamo.send(
-        new PutCommand({
-          TableName: TABLE_ROOM,
-          Item: room,
-          ConditionExpression: "attribute_not_exists(id)",
-        })
-      );
-      return response(200, JSON.stringify(room));
+      await impl.putRoom(room, false, true);
     } catch (error) {
-      if (error.code !== "ConditionalCheckFailedException") throw error
+      if (error.name !== "ConditionalCheckFailedException") throw error
     }
   }
 

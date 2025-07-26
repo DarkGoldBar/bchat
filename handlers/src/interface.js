@@ -1,78 +1,27 @@
-/** @typedef {import('@bchat/types').Room} Room */
-/** @typedef {import('../types.js').User} User */
-const {
-  ApiGatewayManagementApiClient,
-  PostToConnectionCommand,
-} = require('@aws-sdk/client-apigatewaymanagementapi')
-const WEBSOCKET_EP = process.env.WEBSOCKET_EP
-const apiGateway = new ApiGatewayManagementApiClient({ endpoint: WEBSOCKET_EP })
-
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb')
-const { DynamoDBDocumentClient } = require('@aws-sdk/lib-dynamodb')
-
-const ddbClient = new DynamoDBClient({})
-const dynamo = DynamoDBDocumentClient.from(ddbClient)
+/** @typedef { import('./awsImplement.js') } ImplementInterface */
+let impl = null;
 
 /**
- * 向用户发送消息
- * @param {User} user
- * @param {Object} payload
+ * 注入新的实现 
+ * injectInterface 函数必须在 import handlers 之前调用
+ * @param { ImplementInterface } newImpl 新的实现对象，必须包含 db 和 ws 属性
  */
-async function sendMessage(user, payload) {
-  if (!user.connectId) return
-  if (user.connectId.startsWith('$TEST')) {
-    console.log(JSON.stringify(payload))
-    return
-  }
-  try {
-    const s = JSON.stringify(payload)
-    await apiGateway.send(
-      new PostToConnectionCommand({
-        ConnectionId: user.connectId,
-        Data: Buffer.from(s),
-      })
-    )
-    console.log(`Post -> ${user.connectId}: ${s}`)
-  } catch (err) {
-    if (err.name === 'GoneException') {
-      console.warn(`GoneException ${user.connectId}`)
-    } else {
-      throw err
-    }
-  }
+function injectInterface(newImpl) {
+  impl = newImpl
 }
 
 /**
- * 广播消息到多个用户
- * @param {Room} room - 房间对象
- * @param {Object} payload - 消息 payload
+ * 
+ * @returns { ImplementInterface }
  */
-async function broadcastMessage(room, payload) {
-  if (!room || !room.members || room.members.length === 0) {
-    console.warn('No members in the room to broadcast to.')
-    return
+function getInterface() {
+  if (!impl) {
+    impl = require('./awsImplement.js');
   }
-  const broadcasts = room.members
-    .filter(m => m.connectId)
-    .map(async user => sendMessage(user, payload))
-  await Promise.all(broadcasts)
+  return impl;
 }
 
-
-module.exports.interfaceFactory = function (local = false) {
-  if (local) {
-    // 本地接口实现
-    return {
-      sendMessage,
-      broadcastMessage,
-      db,
-    }
-  } else {
-    // 云服务接口实现
-    return {
-      sendMessage,
-      broadcastMessage,
-      db,
-    }
-  }
+module.exports = {
+  injectInterface,  
+  getInterface,
 }

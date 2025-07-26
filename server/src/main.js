@@ -1,17 +1,19 @@
-// src/main.js
+import { injectInterface } from '@bchat/handlers/src/interface.js';
+import * as local from './local.js';
+injectInterface(local);
+
 import { createHttpServer } from './http.js';
 import { createWebSocketServer } from './websocket.js';
 
 function startServers() {
   const httpServer = createHttpServer();
-  const { wss, postToConnectionServer } = createWebSocketServer();
+  const { wsServer, wsManageServer } = createWebSocketServer();
 
-  // 优雅关闭
   process.on('SIGINT', () => {
     console.log('Shutting down servers...');
     httpServer.close();
-    wss.close();
-    postToConnectionServer.close();
+    wsServer.close();
+    wsManageServer.close();
     process.exit(0);
   });
 }

@@ -1,14 +1,3 @@
-export interface WebSocketEvent {
-  requestContext: {
-    connectionId: string
-    routeKey: string
-    stage: string
-  }
-  headers: Record<string, string>
-  body?: string
-  queryStringParameters?: Record<string, string>
-}
-
 export interface Avatar {
   icon: string
   color: string

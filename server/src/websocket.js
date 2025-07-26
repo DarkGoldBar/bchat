@@ -1,35 +1,38 @@
-// src/websocket.js
+/** @typedef {import('@bchat/types').WebSocketEvent} WebSocketEvent */
 import express from 'express';
 import { WebSocketServer } from 'ws';
-import { handler } from '../functions/wsHandler/app.js';
+import { handler } from '@bchat/handlers/src/websocket.js';
 
 // 用于存储活跃的 WebSocket 连接
 const connections = new Map();
+// 路由键，用于区分不同的 WebSocket 路由
+const routeKey = process.env.WS_ROUTE_KEY || 'route';
+
+const wsManagePort = process.env.WS_MANAGE_PORT || 3002;
+const wsPort = process.env.WS_PORT || 3001;
 
 export function createWebSocketServer() {
-  const wss = new WebSocketServer({ port: 3001 });
-  const app = express();
-  const postToConnectionPort = process.env.POST_TO_CONNECTION_PORT || 3002;
+  // 创建一个 WebSocket 服务
+  const wsServer = new WebSocketServer({ port: wsPort });
+  console.log(`wsServer running on port ${wsPort}`);
 
-  // WebSocket 服务器事件处理
-  wss.on('connection', async (ws, req) => {
+  wsServer.on('connection', async (ws, req) => {
     const connectionId = generateConnectionId();
-
-    // 存储连接
     connections.set(connectionId, ws);
 
-    // 模拟 API Gateway 的 connect 事件
+    /** @type {WebSocketEvent} */
     const connectEvent = {
-      queryStringParameters: req.queryStringParameters,
       requestContext: {
         connectionId: connectionId,
-        eventType: 'CONNECT',
-        routeKey: '$connect'
-      }
+        routeKey: '$connect',
+        stage: 'dev',
+      },
+      headers: req.headers,
+      queryStringParameters: req.queryStringParameters,
     };
 
     try {
-      await handler(connectEvent, { connectionId });
+      await handler(connectEvent);
     } catch (error) {
       console.error('Connection error:', error);
       ws.close();
@@ -37,23 +40,24 @@ export function createWebSocketServer() {
 
     // 消息处理
     ws.on('message', async (message) => {
+      /** @type {WebSocketEvent} */
       const messageEvent = {
         requestContext: {
           connectionId: connectionId,
-          eventType: 'MESSAGE',
-          routeKey: '$default'
+          routeKey: '$default',
+          stage: 'dev',
         },
         body: message.toString()
       };
 
       try {
-        messageEvent.requestContext.routeKey = JSON.parse(messageEvent.body).route;
+        messageEvent.requestContext.routeKey = JSON.parse(messageEvent.body)[routeKey] || '$default';
       } catch {
-        messageEvent.requestContext.routeKey = '$default'
+        messageEvent.requestContext.routeKey = '$default';
       }
 
       try {
-        await handler(messageEvent, { connectionId });
+        await handler(messageEvent);
       } catch (error) {
         console.error('Error processing message:', error);
       }
@@ -66,20 +70,21 @@ export function createWebSocketServer() {
       const disconnectEvent = {
         requestContext: {
           connectionId: connectionId,
-          eventType: 'DISCONNECT',
-          routeKey: '$disconnect'
+          routeKey: '$disconnect',
+          stage: 'dev',
         }
       };
 
       try {
-        await handler(disconnectEvent, { connectionId });
+        await handler(disconnectEvent);
       } catch (error) {
         console.error('Error processing disconnect:', error);
       }
     });
   });
 
-  // 创建一个 HTTP 服务用于模拟 PostToConnectionCommand
+  // 创建一个 HTTP 服务用于模拟 Apigateway 管理 WebSocket 链接
+  const app = express();
   app.use(express.json());
   app.post('/connections/:connectionId', async (req, res) => {
     const { connectionId } = req.params;
@@ -104,14 +109,14 @@ export function createWebSocketServer() {
     }
   });
 
-  const postToConnectionServer = app.listen(postToConnectionPort, () => {
-    console.log(`PostToConnection Server running on port ${postToConnectionPort}`);
+  const wsManageServer = app.listen(wsManagePort, () => {
+    console.log(`PostToConnection Server running on port ${wsManagePort}`);
   });
 
-  // 返回 WebSocket 服务器和 PostToConnection 服务器
+  // 返回服务器对象
   return {
-    wss,
-    postToConnectionServer
+    wsServer,
+    wsManageServer
   };
 }
 

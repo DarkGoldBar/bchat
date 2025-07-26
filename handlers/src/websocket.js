@@ -1,67 +1,48 @@
-/** @typedef {import('../types.js').Room} Room */
-/** @typedef {import('../types.js').User} User */
-/** @typedef {import('../types.js').WebSocketEvent} WebSocketEvent */
+/** @typedef {import('@bchat/types.js').Room} Room */
+/** @typedef {import('@bchat/types.js').User} User */
 
-const {
-  GetCommand,
-  PutCommand,
-  DeleteCommand,
-} = require('@aws-sdk/lib-dynamodb')
+const { getInterface } = require('./interface.js')
+const impl = getInterface()
+// const { lobbyHandler } = require('./routerLobby')
+// const { wuziqiHandler } = require('./routerWuziqi')
 
-const { lobbyHandler } = require('./handlerLobby')
-const { wuziqiHandler } = require('./handlerWuziqi')
-const { sendMessage, broadcastMessage } = require('./ifApiGateway')
-const { dynamo } = require('./ifDynamoDB')
-
-const TABLE_ROOM = process.env.TABLE_ROOM
 const MAX_RETRIES = 3
 
-module.exports.handler = async event => {
+/** @type {import('aws-lambda').APIGatewayProxyWebsocketHandlerV2} */
+module.exports.handler = async (event) => {
+  const requestContext = event.requestContext
+  const connectId = requestContext.connectionId
+  const body = event.body ? JSON.parse(event.body) : {} // event.body 存在却无法解析时，直接Crash
+  const route = body.route || requestContext.routeKey
+  const action = body.action
   const queryParams = event.queryStringParameters || {}
-  const body = event.body ? JSON.parse(event.body) : {}
-  const route = event.requestContext.routeKey
   const roomId = queryParams.room || body.room
-  const subAction = body.subAction
-  const connectId = event.requestContext.connectionId
-
-  console.log(`READ route=${route};roomId=${roomId};connectId=${connectId};body=${event.body}`)
+  console.log(`READ route=${route};action=${action};roomId=${roomId};connectId=${connectId};body=${event.body}`)
 
   for (let trials = 0; trials < MAX_RETRIES; trials++) {
     try {
-      await router(route, subAction, roomId, connectId, body)
+      await router(route, action, roomId, connectId, body)
       return { statusCode: 200 }
     } catch (err) {
-      if (err.name !== 'ConditionalCheckFailedException') {
-        throw err
-      }
+      if (err.name !== 'ConditionalCheckFailedException') throw err
     }
   }
   throw new Error('Max trials reached')
 }
 
-async function router(route, subAction, roomId, connectId, body) {
-  if (route === '$connect') {
-    return await handleConnect(connectId, roomId)
-  }
-  if (route === '$disconnect') {
-    return await handleDisconnect(connectId)
-  }
-
+async function router(route, action, roomId, connectId, body) {
+  if (route === '$connect') return await handleConnect(connectId, roomId)
+  if (route === '$disconnect') return await handleDisconnect(connectId)
   const { room, user } = await getRoomAndUser(roomId, connectId)
-  if (route === 'message') {
-    return await messageHandler(room, user, body)
-  }
-  if (route === 'lobby') {
-    return await lobbyHandler(subAction, room, user, body)
-  }
-  if (route === 'wuziqi') {
-    return await wuziqiHandler(subAction, room, user, body)
-  }
-
+  if (route === 'join') return await handleJoin(room, user, body)
+  if (route === 'message') return await handleMessage(room, user, body)
+  if (route === 'lobby') return await lobbyHandler(action, room, user, body)
+  if (route === 'wuziqi') return await wuziqiHandler(action, room, user, body)
   throw new Error(`Invalid route: ${route}`)
 }
 
 /**
+ * 验证权限 & 保存链接
  * @param {string} connectId
  * @param {string} roomId
  */
@@ -69,33 +50,36 @@ async function handleConnect(connectId, roomId) {
   if (!roomId) {
     throw new Error(`Invalid param`)
   }
-  // 保存关联 connectId -> roomId
-  await dynamo.send(
-    new PutCommand({
-      TableName: TABLE_ROOM,
-      Item: {
-        id: connectId,
-        body: roomId,
-        ttl: Math.floor(Date.now() / 1000) + 86400,
-      },
-    })
-  )
+  await db.putUser(connectId, roomId)
 }
 
 /**
+ * 加入通知
+ * @param {Room} room
+ * @param {User} user
+ */
+async function handleJoin(room, user, body) {
+  // 通知对应的hander
+  if (room.stage === 'lobby') {
+    await lobbyHandler('join', room, user, body)
+  } else if (room.stage === 'ingame') {
+    await wuziqiHandler('join', room, user, body)
+  } else if (room.stage === 'gameover') {
+    // 什么也不做
+  } else {
+    throw new Error(`Invalid room stage: ${room.stage}`)
+  }
+}
+
+/**
+ * 删除链接 & 离开通知
  * @param {string} connectId
  */
 async function handleDisconnect(connectId) {
-  // 获取关联 connectId -> roomId
-  const connResult = await dynamo.send(
-    new DeleteCommand({
-      TableName: TABLE_ROOM,
-      Key: { id: connectId },
-      ReturnValues: 'ALL_OLD',
-    })
-  )
-  const roomId = connResult.Item.body
-  const { room, user } = await getRoomAndUser(roomId, connectId)
+  const result = await db.deleteUser(connectId)
+  if (!result.Item) throw new Error(`User not found: ${connectId}`)
+  const roomId = result.Item.body
+  const { room, user } = await db.getRoomAndUser(roomId, connectId)
   // 通知对应的hander
   if (room.stage === 'lobby') {
     await lobbyHandler('leave', room, user)
@@ -109,39 +93,24 @@ async function handleDisconnect(connectId) {
 }
 
 /**
+ * 纯发消息
  * @param {Room} room 
  * @param {User} user 
- * @param {Object} body 
- * @param {string} body.message
- * @param {string} body.sendto
+ * @param {{ message: string, sendto?: string }} body 
  */
-async function messageHandler(room, user, body) {
-  const message = body.message
+async function handleMessage(room, user, body) {
+  const { message, sendto } = body.message
   if (!message) throw new Error(`Invalid param`)
+  const payload = { sender: user.uuid, message }
 
-  const target = room.members.find(m => m.uuid === body.sendto)
-  if (target) {
-    await sendMessage(target, { sender: user.uuid, message })
-  } else {      
-    await broadcastMessage(room, { sender: user.uuid, message })
+  if (!sendto) {
+    await ws.broadcast(room, payload)
+  } else {
+    const target = room.members.find(m => m.uuid === body.sendto)
+    if (target) {
+      await ws.send(target, payload)
+    } else {
+      throw new Error(`Invalid sendto: ${body.sendto}`)
+    }       
   }
-}
-
-/**
- * @param {string} roomId
- * @param {string} connectId
- * @returns {Promise<{ room: Room, user?: User }>}
- */
-async function getRoomAndUser(roomId, connectId) {
-  const result = await dynamo.send(
-    new GetCommand({
-      TableName: TABLE_ROOM,
-      Key: { id: roomId },
-    })
-  )
-  if (!result.Item) throw new Error('Invalid room')
-  const room = result.Item
-  room.members = result.Item.members.map(s => JSON.parse(s))
-  const user = room.members.find(m => m.connectId === connectId) ?? { connectId }
-  return { room, user }
 }

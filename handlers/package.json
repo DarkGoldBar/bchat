@@ -8,5 +8,8 @@
     "@aws-sdk/client-apigatewaymanagementapi": "^3.823.0",
     "@aws-sdk/client-dynamodb": "^3.823.0",
     "@aws-sdk/lib-dynamodb": "^3.823.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.152"
   }
 }
