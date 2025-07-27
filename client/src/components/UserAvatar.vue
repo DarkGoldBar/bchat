@@ -22,6 +22,13 @@ const hasValidIcon = computed(() => {
 })
 </script>
 
+<style scoped>
+.me {
+  border: 2px solid green;
+  border-radius: 1000px;
+}
+</style>
+
 <template>
   <v-avatar :color="avatar.color" size="size">
     <template v-if="hasValidIcon">

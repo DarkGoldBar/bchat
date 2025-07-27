@@ -92,7 +92,7 @@ export function createWebSocketServer() {
   app.post('/connections/:connectionId', async (req, res) => {
     const { connectionId } = req.params
     const { data } = req.body
-    console.log(`Post to connection ${connectionId}:`, data)
+    console.log(`POST-TO-CONN ${connectionId}:`, data)
     const ws = connections.get(connectionId)
     // 410 GoneException
     if (!ws) {

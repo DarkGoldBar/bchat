@@ -1,7 +1,4 @@
 <script setup>
-/** @typedef {import('../types.js').User} User */
-/** @typedef {import('../types.js').Room} Room */
-
 import { ref, inject, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import LobbyView from '../components/Lobby.vue'
@@ -23,31 +20,14 @@ function onClickStart() {
   console.log("start")
 }
 
-function onClickChangeRule() {
-  console.log("changeRule")
+function onClickSetRule() {
+  console.log("setRule")
 }
 </script>
 
 <template>
   <v-container v-if="room.stage === 'lobby'">
-    <v-row justify="center" class="text-center">
-      <v-col>
-        <h2>游戏房间{{ room.id }}</h2>
-      </v-col>
-    </v-row>
-    <v-row justify="center">
-      <v-col cols="4">
-        <v-btn class="mx-auto" color="primary" @click="onClickStart">开始游戏</v-btn>
-      </v-col>
-      <v-col cols="4">
-        <v-btn disabled color="secondary" @click="onClickChangeRule">修改规则</v-btn>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
-        <LobbyView :room :me :send />
-      </v-col>
-    </v-row>
+    <LobbyView :room :me :send @startGame="onClickStart" @setRule="onClickSetRule"/>
   </v-container>
 
   <v-container v-else-if="room.stage === 'ingame'">
@@ -55,7 +35,7 @@ function onClickChangeRule() {
   </v-container>
 
   <v-container v-else>
-    {{ 加载中 }}
+    加载中
   </v-container>
 
 </template>

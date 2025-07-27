@@ -28,7 +28,9 @@ export default function useComm(roomId) {
 
     ws.onmessage = event => {
       const data = JSON.parse(event.data)
-      if (data.action === 'updateRoom') {
+      if (data.action === 'init') {
+        room.value = data.room
+      } else if (data.action === 'updateRoom') {
         room.value = data.room
       } else if (data.action === 'updateBody') {
         room.value.body = data.body

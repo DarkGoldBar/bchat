@@ -11,9 +11,9 @@ const MAX_MEMBER = 20
 const ActionMap = {
   join: handleJoin,
   leave: handleLeave,
-  changePosition: handleChangePosition,
-  changePosLimit: handleChangePosLimit,
-  changeSelf: handleChangeSelf,
+  setPosition: handleSetPosition,
+  setPosLimit: handleSetPosLimit,
+  setSelf: handleSetSelf,
 }
 
 /**
@@ -72,7 +72,7 @@ async function handleLeave(room, user) {
   }
   room.members.splice(userIndex, 1)
   await impl.popRoomMember(room, userIndex)
-  await broadcastMessage(room, {
+  await impl.broadcastMessage(room, {
     action: 'init',
     room: room,
   })
@@ -84,7 +84,7 @@ async function handleLeave(room, user) {
  * @param {object} context
  * @param {number} context.position
  */
-async function handleChangePosition(room, user, context) {
+async function handleSetPosition(room, user, context) {
   // 校验
   const position = context.position
   if (position === undefined || position === null) {
@@ -99,7 +99,7 @@ async function handleChangePosition(room, user, context) {
   // 更新数据库
   await impl.updateRoomMember(room, userIndex)
   // 广播更新
-  await broadcastMessage(room, {
+  await impl.broadcastMessage(room, {
     action: 'init',
     room: room,
   })
@@ -111,7 +111,7 @@ async function handleChangePosition(room, user, context) {
  * @param {object} context
  * @param {User} context.me
  */
-async function handleChangeSelf(room, user, context) {
+async function handleSetSelf(room, user, context) {
   // 校验
   const me = context.me
   if (!me) throw new Error(`Invalid param`)
@@ -122,7 +122,7 @@ async function handleChangeSelf(room, user, context) {
   // 更新数据库
   await impl.updateRoomMember(room, userIndex)
   // 广播更新
-  await broadcastMessage(room, {
+  await impl.broadcastMessage(room, {
     action: 'init',
     room: room,
   })
@@ -134,7 +134,7 @@ async function handleChangeSelf(room, user, context) {
  * @param {object} context
  * @param {number} context.posLimit
  */
-async function handleChangePosLimit(room, user, context) {
+async function handleSetPosLimit(room, user, context) {
   // 校验
   const posLimit = context.posLimit
   if (position === undefined || position === null) {
@@ -150,7 +150,7 @@ async function handleChangePosLimit(room, user, context) {
   // 更新数据库
   await impl.putRoom(room, true, false)
   // 广播更新
-  await broadcastMessage(room, {
+  await impl.broadcastMessage(room, {
     action: 'init',
     room: room,
   })
