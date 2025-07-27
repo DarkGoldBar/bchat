@@ -20,7 +20,9 @@ export default function useComm(roomId) {
     ws.onopen = () => {
       console.log('WebSocket connected')
       if (me) {
-        send({ route: 'join', me })
+        setTimeout(() => {
+          send({ route: 'join', me })  
+        }, 200);
       }
     }
 

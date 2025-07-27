@@ -3,8 +3,8 @@
 
 const { getInterface } = require('./interface.js')
 const impl = getInterface()
-// const { lobbyHandler } = require('./routerLobby')
-// const { wuziqiHandler } = require('./routerWuziqi')
+const { lobbyHandler } = require('./routerLobby')
+const { wuziqiHandler } = require('./routerWuziqi')
 
 const MAX_RETRIES = 3
 
@@ -59,11 +59,15 @@ async function handleConnect(connectId, roomId) {
  * @param {User} user
  */
 async function handleJoin(room, user, body) {
+  user = {
+    ...body.me,
+    connectId: user.connectId
+  }
   // 通知对应的hander
   if (room.stage === 'lobby') {
-    await lobbyHandler('join', room, user, body)
+    await lobbyHandler('join', room, user)
   } else if (room.stage === 'ingame') {
-    await wuziqiHandler('join', room, user, body)
+    await wuziqiHandler('join', room, user)
   } else if (room.stage === 'gameover') {
     // 什么也不做
   } else {

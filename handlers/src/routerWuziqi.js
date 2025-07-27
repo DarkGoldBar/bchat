@@ -7,31 +7,21 @@
  * @property {number} col
  */
 
-const { broadcastMessage } = require('./ifApiGateway')
-const { dynamo } = require('./ifDynamoDB')
-const TABLE_ROOM = process.env.TABLE_ROOM
+const { getInterface } = require('./interface.js')
+const impl = getInterface()
 
 /**
- * @param {string} subAction
+ * @param {string} action
  * @param {Room} room
  * @param {User} user
  * @param {object?} context
- * @returns
  */
-module.exports.wuziqiHandler = async (subAction, room, user, context) => {
-  if (subAction === 'join') {
-    return await handleJoin(room, user)
-  }
-  if (subAction === 'leave') {
-    return await handleLeave(room, user)
-  }
-  if (subAction === 'startGame') {
-    return await handleStartGame(room)
-  }
-  if (subAction === 'doMove') {
-    return await handleDoMove(room, user, context)
-  }
-  throw new Error(`Invalid subAction: ${subAction}`)
+module.exports.wuziqiHandler = async (action, room, user, context) => {
+  if (action === 'join') return await handleJoin(room, user)
+  if (action === 'leave') return await handleLeave(room, user)
+  if (action === 'startGame') return await handleStartGame(room)
+  if (action === 'doMove') return await handleDoMove(room, user, context)
+  throw new Error(`Invalid subAction: ${action}`)
 }
 
 /**
@@ -60,26 +50,7 @@ async function handleStartGame(room) {
     undoArgs: null,
   }
   // 更新数据库
-  await dynamo.send(
-    new UpdateCommand({
-      TableName: TABLE_ROOM,
-      Key: { id: room.id },
-      ConditionExpression: '#version = :ver',
-      UpdateExpression: `SET #state = :state, #body = :body, #version = :newVer`,
-      ExpressionAttributeNames: {
-        '#state': 'state',
-        '#body': 'body',
-        '#version': 'version',
-      },
-      ExpressionAttributeValues: {
-        ':state': 'ingame',
-        ':body': JSON.stringify(room.body),
-        ':ver': room.version,
-        ':newVer': room.version + 1,
-      },
-      ReturnValues: 'NONE',
-    })
-  )
+  await impl.putRoom(room, true, false)
   // 广播更新
   await broadcastMessage(room, {
     action: 'init',
@@ -96,16 +67,5 @@ async function handleStartGame(room) {
  * @param {number} context.col
  */
 async function handleDoMove(room, user, context) {
-  if (!isReady || !user || !context || !context.row || !context.col) {
-    throw new Error(`Invalid parameters for doMove`)
-  }
-  // 校验
-  if (room.body.winner) {
-    throw new Error(`Game is already over`)
-  }
-  if (room.body.currentPlayerId !== user.uuid) {
-    throw new Error(`It's not your turn`)
-  }
-  const userPosition = room.members.find(m => m.uuid === user.uuid)?.position
-  const value = userPosition ?? 0
+  console.log("Handling doMove action")
 }

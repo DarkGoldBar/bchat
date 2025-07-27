@@ -1,89 +1,61 @@
 /** @typedef {import('../types.js').Room} Room */
 /** @typedef {import('../types.js').User} User */
 
-const { broadcastMessage } = require('./ifApiGateway')
-const { PutCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb')
-const dynamo = DynamoDBDocumentClient.from(ddbClient)
+const awsImplement = require('./awsImplement.js')
+const { getInterface } = require('./interface.js')
+const impl = getInterface() 
 
-const TABLE_ROOM = process.env.TABLE_ROOM
 const MAX_MEMBER = 20
 
+/** @type {Record<string, (room: Room, user: User, context: object?) => Promise>}   */
 const ActionMap = {
   join: handleJoin,
   leave: handleLeave,
-  startGame: handleStartGame,
   changePosition: handleChangePosition,
   changePosLimit: handleChangePosLimit,
   changeSelf: handleChangeSelf,
 }
 
 /**
- * @param {string} subAction
+ * @param {string} action
  * @param {Room} room
  * @param {User} user
  * @param {object?} context
  * @returns
  */
-module.exports.lobbyHandler = async (subAction, room, user, context) => {
-  if (!subAction || !room || !user) throw new Error(`Invalid param`)
-  if (!ActionMap[subAction]) throw new Error(`Invalid subAction: ${subAction}`)
-  return await ActionMap[subAction](room, user, context)
+module.exports.lobbyHandler = async (action, room, user, context) => {
+  if (!(action && room && user)) throw new Error(`Invalid param`)
+  const handler = ActionMap[action]
+  if (!handler) throw new Error(`Invalid action: ${action}`)
+  return await handler(room, user, context)
 }
 
 /**
  * @param {Room} room
- * @param {object} context
- * @param {User} context.user
+ * @param {User} user
  */
-async function handleJoin(room, { connectId }, context) {
-  if (
-    !context ||
-    !context.user ||
-    !context.user.uuid ||
-    !context.user.name ||
-    !context.user.avatar ||
-    !connectId
-  ) {
+async function handleJoin(room, user) {
+  if (!(user && user.uuid && user.connectId && user.name && user.avatar)) {
+    console.error('Invalid user data', user)
     throw new Error(`Invalid param`)
   }
-  let user = room.members.find(m => m.uuid === context.user.uuid)
-  if (user) {
+  /** @type {User} */
+  let newUser = room.members.find(m => m.uuid === user.uuid)
+  if (newUser) {
     console.log('User exist')
-    user.connectId = connectId
-    const userIndex = room.members.indexOf(user)
-    // 更新数据库
-    await updateRoomMember(room, userIndex)
+    newUser.connectId = user.connectId
+    const userIndex = room.members.indexOf(newUser)
+    await impl.updateRoomMember(room, userIndex)
   } else {
     console.log('User not exist')
     if (room.members.length + 1 >= MAX_MEMBER) throw new Error('Max members reached')
-    user = context.user
-    user.connectId = connectId
-    user.position = 0
-    room.members.push(user)
-    // 更新数据库
-    const userString = JSON.stringify(user)
-    const command = new UpdateCommand({
-      TableName: TABLE_ROOM,
-      Key: { id: room.id },
-      UpdateExpression:
-        'SET #members = list_append(if_not_exists(#members, :empty), :newMember), #version = :newVer',
-      ConditionExpression: '#version = :ver',
-      ExpressionAttributeNames: {
-        '#members': 'members',
-        '#version': 'version',
-      },
-      ExpressionAttributeValues: {
-        ':newMember': [userString],
-        ':empty': [],
-        ':ver': room.version,
-        ':newVer': room.version + 1,
-      },
-    })
-
-    await dynamo.send(command)
+    newUser = user
+    newUser.position = 0
+    room.members.push(newUser)
+    await impl.pushUser(room, newUser)
   }
   // 广播更新
-  await broadcastMessage(room, {
+  await impl.broadcastMessage(room, {
     action: 'init',
     room: room,
   })
@@ -95,26 +67,11 @@ async function handleJoin(room, { connectId }, context) {
  */
 async function handleLeave(room, user) {
   const userIndex = room.members.indexOf(user)
-  if (userIndex < 0) throw new Error(`User not found in room: ${user.uuid} ${user.connectId}`)
+  if (userIndex < 0) {
+    throw new Error(`User not found in room: ${user.uuid} ${user.connectId}`)
+  }
   room.members.splice(userIndex, 1)
-  // 更新数据库
-  await dynamo.send(
-    new UpdateCommand({
-      TableName: TABLE_ROOM,
-      Key: { id: room.id },
-      UpdateExpression: `REMOVE #members[${userIndex}] SET #version = :newVer`,
-      ConditionExpression: '#version = :ver',
-      ExpressionAttributeNames: {
-        '#members': 'members',
-        '#version': 'version',
-      },
-      ExpressionAttributeValues: {
-        ':ver': room.version,
-        ':newVer': room.version + 1,
-      },
-    })
-  )
-  // 广播更新
+  await impl.popRoomMember(room, userIndex)
   await broadcastMessage(room, {
     action: 'init',
     room: room,
@@ -140,7 +97,7 @@ async function handleChangePosition(room, user, context) {
   user.position = position
   userIndex = room.members.indexOf(user)
   // 更新数据库
-  await updateRoomMember(room, userIndex)
+  await impl.updateRoomMember(room, userIndex)
   // 广播更新
   await broadcastMessage(room, {
     action: 'init',
@@ -163,7 +120,7 @@ async function handleChangeSelf(room, user, context) {
   user.avatar = me.avatar
   userIndex = room.members.indexOf(user)
   // 更新数据库
-  await updateRoomMember(room, userIndex)
+  await impl.updateRoomMember(room, userIndex)
   // 广播更新
   await broadcastMessage(room, {
     action: 'init',
@@ -191,64 +148,10 @@ async function handleChangePosLimit(room, user, context) {
     }
   })
   // 更新数据库
-  await updateRoom(room)
+  await impl.putRoom(room, true, false)
   // 广播更新
   await broadcastMessage(room, {
     action: 'init',
     room: room,
   })
-}
-
-/**
- * UPDATE ROOM
- * @param {Room} room
- * @param {User} user
- * @param {number} index
- */
-async function updateRoom(room) {
-  const newRoom = {
-    ...room,
-    members: room.members.map(m => JSON.stringify(m)),
-    version: room.version + 1,
-  }
-  const command = new PutCommand({
-    TableName: TABLE_ROOM,
-    Item: newRoom,
-    ConditionExpression: '#version = :ver',
-    ExpressionAttributeNames: {
-      '#version': 'version',
-    },
-    ExpressionAttributeValues: {
-      ':ver': room.version,
-    },
-  })
-  await dynamo.send(command)
-}
-
-/**
- * UPDATE USER
- * @param {Room} room
- * @param {User} user
- * @param {number} index
- */
-async function updateRoomMember(room, index) {
-  const userString = JSON.stringify(room.members[index])
-
-  const command = new UpdateCommand({
-    TableName: TABLE_ROOM,
-    Key: { id: room.id },
-    ConditionExpression: '#version = :ver',
-    UpdateExpression: `SET #members[${index}] = :user, #version = :newVer`,
-    ExpressionAttributeNames: {
-      '#members': 'members',
-      '#version': 'version',
-    },
-    ExpressionAttributeValues: {
-      ':user': userString,
-      ':ver': room.version,
-      ':newVer': room.version + 1,
-    },
-    ReturnValues: 'NONE',
-  })
-  await dynamo.send(command)
 }

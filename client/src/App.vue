@@ -9,8 +9,8 @@ const snackbarColor = ref('error')
 
 function snackbarCall(msg, color) {
   snackbar.value = true
-  snackbarMessage = msg
-  snackbarColor = color
+  snackbarMessage.value = msg
+  snackbarColor.value = color
   console.log(color, msg)
 }
 

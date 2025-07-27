@@ -92,9 +92,8 @@ export function createWebSocketServer() {
   app.post('/connections/:connectionId', async (req, res) => {
     const { connectionId } = req.params
     const { data } = req.body
-
+    console.log(`Post to connection ${connectionId}:`, data)
     const ws = connections.get(connectionId)
-
     // 410 GoneException
     if (!ws) {
       return res.status(410).json({
@@ -125,5 +124,5 @@ export function createWebSocketServer() {
 
 // 生成唯一的连接 ID
 function generateConnectionId() {
-  return `connection-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+  return `CONN-${Math.random().toString(36).slice(2, 9)}`
 }

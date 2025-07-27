@@ -9,7 +9,6 @@ const TABLE_ROOM = process.env.TABLE_ROOM || 'Room'
 const ddbClient = new DynamoDBClient({})
 const dynamo = DynamoDBDocumentClient.from(ddbClient)
 
-
 // ApiGateway WebSocket API
 const {
   ApiGatewayManagementApiClient,
@@ -61,7 +60,11 @@ async function getAndDeleteUser(connectId) {
 async function putRoom(room, checkVersion = false, checkUnique = false) {
   const command = new PutCommand({
     TableName: TABLE_ROOM,
-    Item: room
+    Item: {
+      ...room,
+      members: room.members.map(m => JSON.stringify(m)),
+      version: room.version + 1
+    }
   })
   if (checkVersion) {
     command.ConditionExpression = 'version = :version'
@@ -93,6 +96,85 @@ async function getRoomAndUser(roomId, connectId) {
   return { room, user }
 }
 
+/**
+ *
+ * @param {Room} room
+ * @param {User} user
+ */
+async function pushRoomMember(room, user) {
+  const userString = JSON.stringify(user)
+
+  const command = new UpdateCommand({
+    TableName: TABLE_ROOM,
+    Key: { id: room.id },
+    UpdateExpression:
+      'SET #members = list_append(if_not_exists(#members, :empty), :newMember), #version = :newVer',
+    ConditionExpression: '#version = :ver',
+    ExpressionAttributeNames: {
+      '#members': 'members',
+      '#version': 'version'
+    },
+    ExpressionAttributeValues: {
+      ':newMember': [userString],
+      ':empty': [],
+      ':ver': room.version,
+      ':newVer': room.version + 1
+    }
+  })
+  await dynamo.send(command)
+}
+
+/**
+ *
+ * @param {Room} room
+ * @param {User} user
+ * @param {number} userIndex
+ */
+async function popRoomMember(room, userIndex) {
+  const command = new UpdateCommand({
+    TableName: TABLE_ROOM,
+    Key: { id: room.id },
+    UpdateExpression: `REMOVE #members[${userIndex}] SET #version = :newVer`,
+    ConditionExpression: '#version = :ver',
+    ExpressionAttributeNames: {
+      '#members': 'members',
+      '#version': 'version'
+    },
+    ExpressionAttributeValues: {
+      ':ver': room.version,
+      ':newVer': room.version + 1
+    }
+  })
+  await dynamo.send(command)
+}
+
+/**
+ *
+ * @param {Room} room
+ * @param {User} user
+ * @param {number} userIndex
+ */
+async function updateRoomMember(room, userIndex) {
+  const userString = JSON.stringify(room.members[userIndex])
+
+  const command = new UpdateCommand({
+    TableName: TABLE_ROOM,
+    Key: { id: room.id },
+    ConditionExpression: '#version = :ver',
+    UpdateExpression: `SET #members[${userIndex}] = :user, #version = :newVer`,
+    ExpressionAttributeNames: {
+      '#members': 'members',
+      '#version': 'version'
+    },
+    ExpressionAttributeValues: {
+      ':user': userString,
+      ':ver': room.version,
+      ':newVer': room.version + 1
+    },
+    ReturnValues: 'NONE'
+  })
+  await dynamo.send(command)
+}
 
 /**
  * 向用户发送消息
@@ -140,11 +222,14 @@ async function broadcastMessage(room, payload) {
 }
 
 module.exports = {
-  name: "aws",
+  name: 'aws',
   putUser,
   putRoom,
   getAndDeleteUser,
   getRoomAndUser,
+  pushRoomMember,
+  popRoomMember,
+  updateRoomMember,
   sendMessage,
   broadcastMessage
 }
