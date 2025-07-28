@@ -1,14 +1,7 @@
-/** @typedef {import('../types.js').Room} Room */
-/** @typedef {import('../types.js').User} User */
-
-/** @typedef {Object} Cell
- * @property {'' | 'A' | 'B'} value
- * @property {number} row
- * @property {number} col
- */
-
+/** @typedef {import('@bchat/types').Room} Room */
+/** @typedef {import('@bchat/types').User} User */
 const { getInterface } = require('./interface.js')
-const impl = getInterface()
+const impl = getInterface() 
 
 /**
  * @param {string} action
@@ -19,7 +12,7 @@ const impl = getInterface()
 module.exports.wuziqiHandler = async (action, room, user, context) => {
   if (action === 'join') return await handleJoin(room, user)
   if (action === 'leave') return await handleLeave(room, user)
-  if (action === 'startGame') return await handleStartGame(room)
+  if (action === 'start') return await handleStartGame(room)
   if (action === 'doMove') return await handleDoMove(room, user, context)
   throw new Error(`Invalid subAction: ${action}`)
 }

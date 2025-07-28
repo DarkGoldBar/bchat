@@ -1,7 +1,5 @@
-/** @typedef {import('../types.js').Room} Room */
-/** @typedef {import('../types.js').User} User */
-
-const awsImplement = require('./awsImplement.js')
+/** @typedef {import('@bchat/types').Room} Room */
+/** @typedef {import('@bchat/types').User} User */
 const { getInterface } = require('./interface.js')
 const impl = getInterface() 
 

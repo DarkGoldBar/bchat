@@ -17,7 +17,7 @@ onMounted(() => {
 })
 
 function onClickStart() {
-  console.log("start")
+  send({ route: "wuziqi", action: "start" })
 }
 
 function onClickSetRule() {
@@ -37,5 +37,4 @@ function onClickSetRule() {
   <v-container v-else>
     加载中
   </v-container>
-
 </template>

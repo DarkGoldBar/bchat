@@ -25,3 +25,12 @@ export interface Room {
   ttl: number
   version: number
 }
+
+export interface WuziqiState {
+  board: Array<string>,
+  rows: number,
+  cols: number,
+  current: string,
+  winner: string,
+  undo: string,
+}

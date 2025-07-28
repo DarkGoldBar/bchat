@@ -1,6 +1,5 @@
 /** @typedef {import('@bchat/types.js').Room} Room */
 /** @typedef {import('@bchat/types.js').User} User */
-
 const { getInterface } = require('./interface.js')
 const impl = getInterface()
 const { lobbyHandler } = require('./routerLobby')
