@@ -17,7 +17,12 @@ onMounted(() => {
 })
 
 function onClickStart() {
-  send({ route: "wuziqi", action: "start" })
+  const isReady = room.value.members.filter(m => m.position > 0).length === posLimit
+  if (isReady) {
+    send({ route: "wuziqi", action: "start" })
+  } else {
+    snackbarCall('Can not start game', 'warning')
+  }
 }
 
 function onClickSetRule() {

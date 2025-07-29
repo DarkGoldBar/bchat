@@ -3,6 +3,8 @@
 const { getInterface } = require('./interface.js')
 const impl = getInterface() 
 
+const { Wuziqi } = require('./logicWuziqi.js')
+
 /**
  * @param {string} action
  * @param {Room} room
@@ -22,31 +24,24 @@ module.exports.wuziqiHandler = async (action, room, user, context) => {
  */
 async function handleStartGame(room) {
   // 校验
-  const cols = 11
-  const rows = 11
   const posLimit = room.posLimit
   const isReady = room.members.filter(m => m.position > 0).length === posLimit
-  const currentPlayerId = room.members.find(m => m.position === 1)?.uuid
-  if (!isReady || !currentPlayerId) {
+  if (!isReady) {
     throw new Error(`Not enough players ready to start the game`)
   }
   // 逻辑
-  room.stage = 'ingame'
-  room.body = {
-    board: Array.from({ length: rows * cols }).map((_, index) => ({
-      value: '',
-      row: Math.floor(index / cols),
-      col: index % cols,
-    })),
-    currentPlayerId: currentPlayerId,
-    winner: null,
-    undoArgs: null,
+  const state = JSON.parse(room.body ?? '{}')
+  const game = new Wuziqi(state)
+  if (!game.doStart()) {
+    throw new Error(`Cannot start`)
   }
-  // 更新数据库
+  const newState = game.export()
+  room.body = JSON.stringify(newState)
+  // 更新
   await impl.putRoom(room, true, false)
-  // 广播更新
+  // 广播
   await broadcastMessage(room, {
-    action: 'init',
+    action: 'updateRoom',
     room: room,
   })
 }
@@ -60,5 +55,27 @@ async function handleStartGame(room) {
  * @param {number} context.col
  */
 async function handleDoMove(room, user, context) {
-  console.log("Handling doMove action")
+  // 校验
+  const state = JSON.parse(room.body ?? '{}')
+  const game = new Wuziqi(state)
+  const { row, col } = context
+  if (user.position !== game.current) {
+    throw new Error("Not your turn")
+  }
+  if (row == null || col == null) {
+    throw new Error("Invalid Context")
+  }
+  // 逻辑
+  if (!game.doMove()) {
+    throw new Error('Cannot Move')
+  }
+  const newState = game.export()
+  room.body = JSON.stringify(newState)
+  // 更新
+  await impl.putRoom(room, true, false)
+  // 广播
+  await broadcastMessage(room, {
+    action: 'updateRoom',
+    room: room,
+  })
 }

@@ -27,10 +27,10 @@ export interface Room {
 }
 
 export interface WuziqiState {
-  board: Array<string>,
+  board: Array<number>,
   rows: number,
   cols: number,
-  current: string,
-  winner: string,
-  undo: string,
+  current: number | null,
+  winner: number | null,
+  undo: number | null,
 }

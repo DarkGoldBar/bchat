@@ -5,11 +5,16 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
+    "@bchat/shared": "file:../shared",
     "@aws-sdk/client-apigatewaymanagementapi": "^3.823.0",
     "@aws-sdk/client-dynamodb": "^3.823.0",
     "@aws-sdk/lib-dynamodb": "^3.823.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152"
+  },
+  "scripts": {
+    "build:shared": "cd ../shared && npm run build",
+    "preinstall": "npm run build:shared"
   }
 }

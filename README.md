@@ -1,10 +1,10 @@
 # BChat
 一个小规模使用的在线聚会游戏平台。前后端统一使用JavaScript开发。
 
-## Workspace
+## NPM Workspace
 ### client
 前端包。
-使用Vue3 + Vuetify3 + VueRoute为框架构建。
+使用Vue3 + Vuetify3 + VueRoute为框架，使用Vite构建。
 打包后使用gitpage提供服务。
 
 ### server
@@ -24,3 +24,5 @@
 
 ## 代码规范
 - 遵循let it crash原则，不需要过多的try-catch。
+- 使用NPM作为包管理工具
+- 使用ESNext作为发布标准，不使用向前兼容工具。

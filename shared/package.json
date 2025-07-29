@@ -1,0 +1,16 @@
+{
+  "name": "@bchat/shared",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "babel src --out-dir dist --copy-files"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.x",
+    "@babel/core": "^7.x",
+    "@babel/preset-env": "^7.x"
+  },
+  "files": [
+    "dist"
+  ]
+}
