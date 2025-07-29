@@ -3,7 +3,7 @@
 const { getInterface } = require('./interface.js')
 const impl = getInterface() 
 
-const { Wuziqi } = require('./logicWuziqi.js')
+const { Wuziqi } = require('@bchat/shared')
 
 /**
  * @param {string} action

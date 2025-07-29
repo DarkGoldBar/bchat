@@ -1,16 +1,20 @@
 {
   "name": "@bchat/shared",
   "version": "1.0.0",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "babel src --out-dir dist --copy-files"
+    "build": "tsup src/index.ts --format esm,cjs --dts"
   },
   "devDependencies": {
-    "@babel/cli": "^7.x",
-    "@babel/core": "^7.x",
-    "@babel/preset-env": "^7.x"
-  },
-  "files": [
-    "dist"
-  ]
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
 }

@@ -32,5 +32,5 @@ export interface WuziqiState {
   cols: number,
   current: number | null,
   winner: number | null,
-  undo: number | null,
+  undo: { row: number; col: number } | null,
 }

@@ -12,9 +12,5 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152"
-  },
-  "scripts": {
-    "build:shared": "cd ../shared && npm run build",
-    "preinstall": "npm run build:shared"
   }
 }
