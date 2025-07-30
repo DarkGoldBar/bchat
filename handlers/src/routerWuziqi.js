@@ -14,7 +14,7 @@ const { Wuziqi } = require('@bchat/shared')
 module.exports.wuziqiHandler = async (action, room, user, context) => {
   if (action === 'leave') return await handleLeave(room, user)
   if (action === 'start') return await handleStartGame(room)
-  if (action === 'doMove') return await handleDoMove(room, user, context)
+  if (action === 'move') return await handleDoMove(room, user, context)
   throw new Error(`Invalid subAction: ${action}`)
 }
 
@@ -65,7 +65,7 @@ async function handleDoMove(room, user, context) {
     throw new Error("Invalid Context")
   }
   // 逻辑
-  if (!game.doMove()) {
+  if (!game.doMove(row, col)) {
     throw new Error('Cannot Move')
   }
   const newState = game.export()

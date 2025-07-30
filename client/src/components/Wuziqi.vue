@@ -41,10 +41,12 @@ const cellSize = computed(() => 500 / Math.max(state.value.rows, state.value.col
 const rows = computed(() => state.value.rows)
 const cols = computed(() => state.value.cols)
 const board = computed(() => state.value.board || [])
+const winner = computed(() => state.value.winner ? props.room.members.find(m => m.position === state.value.winner) : null)
+const me = computed(() => props.room.members.find(m => isme(m)))
 
 function handleMove(row, col) {
   const game = new Wuziqi(state.value)
-  if (game.current !== props.me.position) {
+  if (game.current !== me.value.position) {
     snackbarCall('不是你的回合', 'error')
     return
   }
@@ -93,7 +95,11 @@ function handleGiveUp() {
         <UserAvatar :avatar="player1.avatar" :class="{ 'me': isme(player1) }" />
         <div class="text-subtitle-1">{{ player1.name }}</div>
       </v-col>
-      <v-col cols="2" class="text-center">
+      <v-col v-if="winner" cols="2" class="text-center">
+        <v-chip color="success" variant="flat">赢家</v-chip>
+        <p>{{ winner.name }}</p>
+      </v-col>
+      <v-col v-else cols="2" class="text-center">
         <v-chip color="primary" variant="flat">轮到</v-chip>
         <p>{{ state.current === 1 ? player1.name : player2.name }}</p>
       </v-col>

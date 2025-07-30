@@ -9,5 +9,8 @@
     "server",
     "client"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "cd shared; npm run build"
+  }
 }
