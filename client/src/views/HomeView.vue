@@ -69,7 +69,7 @@ function handleGameJoin(game) {
         <h3 class="text-h5">Quick Start:</h3>
       </v-col>
 
-      <v-col cols="4" class="mx-auto" v-for="game in gamelist" :key="game.name">
+      <v-col cols="6" sm="4" lg="3" class="mx-auto" v-for="game in gamelist" :key="game.name">
         <v-card>
           <v-card-title>
             {{ game.name }}
