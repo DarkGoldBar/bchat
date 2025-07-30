@@ -16,6 +16,7 @@ export const name = 'local';
 /** @type { import('@bchat/handlers/src/awsImplement.js').putRoom } */
 export async function putRoom(room, checkVersion = false, checkUnique = false) {
   const key = TABLE_ROOM + room.id;
+  room.members = room.members.map(m => JSON.stringify(m));
   await redis.set(key, JSON.stringify(room));
   return { $metadata: { httpStatusCode: 200 } };
 }
@@ -65,7 +66,7 @@ export async function updateRoomMember(room, userIndex) {
 }
 
 /** @type { import('@bchat/handlers/src/awsImplement.js').pushUser } */
-export async function pushUser(room, user) {
+export async function pushRoomMember(room, user) {
   const key = TABLE_ROOM + room.id;
   const roomData = await redis.get(key);
   if (!roomData) {

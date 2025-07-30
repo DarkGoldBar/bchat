@@ -17,7 +17,7 @@ onMounted(() => {
 })
 
 function onClickStart() {
-  const isReady = room.value.members.filter(m => m.position > 0).length === posLimit
+  const isReady = room.value.members.filter(m => m.position > 0).length === room.value.posLimit
   if (isReady) {
     send({ route: "wuziqi", action: "start" })
   } else {

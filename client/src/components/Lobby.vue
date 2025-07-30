@@ -28,15 +28,14 @@ const props = defineProps({
   }
 })
 
+const isme = (user) => (user.uuid === props.me.uuid)
+
 const posLimit = computed(() => props.room.posLimit)
 const posZero = computed(() => props.room.members.filter((m) => m.position === 0))
 const posMap = computed(() => Array
   .from({ length: posLimit.value + 1 })
   .map((_, i) => (i > 0 ? props.room.members.find(m => m.position === i) : null)))
 
-function isme(user) {
-  return user.uuid === props.me.uuid
-}
 
 // 编辑框
 const editDialog = ref(false)

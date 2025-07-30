@@ -31,7 +31,16 @@ const props = defineProps({
   }
 })
 
+const isme = (user) => (user.uuid === props.me.uuid)
+
+/** @type {import('vue').ComputedRef<WuziqiState>} */
 const state = computed(() => JSON.parse(props.room.body))
+const player1 = computed(() => props.room.members.find(m => m.position === 1) || {})
+const player2 = computed(() => props.room.members.find(m => m.position === 2) || {})
+const cellSize = computed(() => 500 / Math.max(state.value.rows, state.value.cols))
+const rows = computed(() => state.value.rows)
+const cols = computed(() => state.value.cols)
+const board = computed(() => state.value.board || [])
 
 function handleMove(row, col) {
   const game = new Wuziqi(state.value)
@@ -81,16 +90,16 @@ function handleGiveUp() {
     <!-- 状态栏 -->
     <v-row align="center" justify="space-between" class="mb-4">
       <v-col cols="5" class="text-center">
-        <UserAvatar :avatar="playerA.avatar" />
-        <div class="text-subtitle-1">{{ playerA.name }}</div>
+        <UserAvatar :avatar="player1.avatar" :class="{ 'me': isme(player1) }" />
+        <div class="text-subtitle-1">{{ player1.name }}</div>
       </v-col>
       <v-col cols="2" class="text-center">
         <v-chip color="primary" variant="flat">轮到</v-chip>
-        <p>{{ currentTurn === 'A' ? playerA.name : playerB.name }}</p>
+        <p>{{ state.current === 1 ? player1.name : player2.name }}</p>
       </v-col>
       <v-col cols="5" class="text-center">
-        <UserAvatar :avatar="playerB.avatar" />
-        <div class="text-subtitle-1">{{ playerB.name }}</div>
+        <UserAvatar :avatar="player2.avatar" :class="{ 'me': isme(player2) }" />
+        <div class="text-subtitle-1">{{ player2.name }}</div>
       </v-col>
     </v-row>
 
@@ -107,10 +116,13 @@ function handleGiveUp() {
 
         <!-- 棋子 -->
         <g>
-          <circle v-for="cell in board" :key="`${cell.row},${cell.col}`" :cx="cell.col * cellSize + cellSize / 2"
-            :cy="cell.row * cellSize + cellSize / 2" :r="cellSize * 0.35" class="cell"
-            :class="{ 'cell-none': !cell.value , 'cell-A': cell.value === 'A', 'cell-B': cell.value === 'B'}"
-            @click="() => !cell.value && handleMove(cell.row, cell.col)" />
+          <circle v-for="(cell, index) in board" :key="index" :cx="(index % cols) * cellSize + cellSize / 2"
+            :cy="Math.floor(index / cols) * cellSize + cellSize / 2" :r="cellSize * 0.35" class="cell" :class="{
+              'cell-0': cell === 0,
+              'cell-1': cell === 1,
+              'cell-2': cell === 2,
+            }" @click="() => !cell && handleMove(Math.floor(index / cols), index % cols)" />
+
         </g>
       </svg>
     </v-card>
@@ -142,23 +154,23 @@ svg#board[disabled] {
   transition: fill 0.3s;
 }
 
-.cell-A {
+.cell-1 {
   stroke: #000;
   cursor: default;
   fill: #000000;
 }
 
-.cell-B {
+.cell-2 {
   stroke: #000;
   cursor: default;
   fill: #ffffff;
 }
 
-.cell-none {
+.cell-0 {
   fill: transparent;
 }
 
-.cell-none:hover {
+.cell-0:hover {
   stroke: #888;
 }
 </style>

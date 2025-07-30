@@ -3,11 +3,8 @@
 const { getInterface } = require('./interface.js')
 const impl = getInterface() 
 
-const MAX_MEMBER = 20
-
 /** @type {Record<string, (room: Room, user: User, context: object?) => Promise>}   */
 const ActionMap = {
-  join: handleJoin,
   leave: handleLeave,
   setPosition: handleSetPosition,
   setPosLimit: handleSetPosLimit,
@@ -26,37 +23,6 @@ module.exports.lobbyHandler = async (action, room, user, context) => {
   const handler = ActionMap[action]
   if (!handler) throw new Error(`Invalid action: ${action}`)
   return await handler(room, user, context)
-}
-
-/**
- * @param {Room} room
- * @param {User} user
- */
-async function handleJoin(room, user) {
-  if (!(user && user.uuid && user.connectId && user.name && user.avatar)) {
-    console.error('Invalid user data', user)
-    throw new Error(`Invalid param`)
-  }
-  /** @type {User} */
-  let newUser = room.members.find(m => m.uuid === user.uuid)
-  if (newUser) {
-    console.log('User exist')
-    newUser.connectId = user.connectId
-    const userIndex = room.members.indexOf(newUser)
-    await impl.updateRoomMember(room, userIndex)
-  } else {
-    console.log('User not exist')
-    if (room.members.length + 1 >= MAX_MEMBER) throw new Error('Max members reached')
-    newUser = user
-    newUser.position = 0
-    room.members.push(newUser)
-    await impl.pushUser(room, newUser)
-  }
-  // 广播更新
-  await impl.broadcastMessage(room, {
-    action: 'init',
-    room: room,
-  })
 }
 
 /**

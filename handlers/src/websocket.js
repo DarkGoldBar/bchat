@@ -6,6 +6,7 @@ const { lobbyHandler } = require('./routerLobby')
 const { wuziqiHandler } = require('./routerWuziqi')
 
 const MAX_RETRIES = 3
+const MAX_MEMBER = 20
 
 /** @type {import('aws-lambda').APIGatewayProxyWebsocketHandlerV2} */
 module.exports.handler = async (event) => {
@@ -62,16 +63,37 @@ async function handleJoin(room, user, body) {
     ...body.me,
     connectId: user.connectId
   }
-  // 通知对应的hander
-  if (room.stage === 'lobby') {
-    await lobbyHandler('join', room, user)
-  } else if (room.stage === 'ingame') {
-    await wuziqiHandler('join', room, user)
-  } else if (room.stage === 'gameover') {
-    // 什么也不做
+  /** @type {User} */
+  let newUser = room.members.find(m => m.uuid === user.uuid)
+  if (newUser) {
+    console.log('User exist')
+    newUser.connectId = user.connectId
+    const userIndex = room.members.indexOf(newUser)
+    await impl.updateRoomMember(room, userIndex)
   } else {
-    throw new Error(`Invalid room stage: ${room.stage}`)
+    console.log('User not exist')
+    if (room.members.length + 1 >= MAX_MEMBER) throw new Error('Max members reached')
+    newUser = user
+    newUser.position = 0
+    room.members.push(newUser)
+    await impl.pushRoomMember(room, newUser)
   }
+  // 广播更新
+  await impl.broadcastMessage(room, {
+    action: 'init',
+    room: room,
+  })
+
+  // 通知对应的hander
+  // if (room.stage === 'lobby') {
+  //   await lobbyHandler('postJoin', room, user)
+  // } else if (room.stage === 'ingame') {
+  //   await wuziqiHandler('postJoin', room, user)
+  // } else if (room.stage === 'gameover') {
+  //   // 什么也不做
+  // } else {
+  //   throw new Error(`Invalid room stage: ${room.stage}`)
+  // }
 }
 
 /**

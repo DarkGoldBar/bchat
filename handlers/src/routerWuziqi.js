@@ -12,7 +12,6 @@ const { Wuziqi } = require('@bchat/shared')
  * @param {object?} context
  */
 module.exports.wuziqiHandler = async (action, room, user, context) => {
-  if (action === 'join') return await handleJoin(room, user)
   if (action === 'leave') return await handleLeave(room, user)
   if (action === 'start') return await handleStartGame(room)
   if (action === 'doMove') return await handleDoMove(room, user, context)
@@ -24,23 +23,23 @@ module.exports.wuziqiHandler = async (action, room, user, context) => {
  */
 async function handleStartGame(room) {
   // 校验
-  const posLimit = room.posLimit
-  const isReady = room.members.filter(m => m.position > 0).length === posLimit
+  const isReady = room.members.filter(m => m.position > 0).length === room.posLimit
   if (!isReady) {
     throw new Error(`Not enough players ready to start the game`)
   }
   // 逻辑
-  const state = JSON.parse(room.body ?? '{}')
+  const state = JSON.parse(room.body ? room.body : '{}')
   const game = new Wuziqi(state)
   if (!game.doStart()) {
     throw new Error(`Cannot start`)
   }
   const newState = game.export()
+  room.stage = 'ingame'
   room.body = JSON.stringify(newState)
   // 更新
   await impl.putRoom(room, true, false)
   // 广播
-  await broadcastMessage(room, {
+  await impl.broadcastMessage(room, {
     action: 'updateRoom',
     room: room,
   })
@@ -74,7 +73,7 @@ async function handleDoMove(room, user, context) {
   // 更新
   await impl.putRoom(room, true, false)
   // 广播
-  await broadcastMessage(room, {
+  await impl.broadcastMessage(room, {
     action: 'updateRoom',
     room: room,
   })
