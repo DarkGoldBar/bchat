@@ -1,6 +1,7 @@
 /** @typedef {import('../types.js').User} User */
 /** @typedef {import('../types.js').Room} Room */
 import { ref, onBeforeUnmount } from 'vue'
+import { v4 as uuidv4 } from 'uuid';
 
 const WS_URL = import.meta.env.VITE_WS_URL
 
@@ -101,7 +102,7 @@ function setLocalUser({ uuid, name, avatar }) {
  */
 function getLocalUser() {
   let uuid = localStorage.getItem('uuid')
-  if (!uuid || uuid === 'undefined') uuid = crypto.randomUUID()
+  if (!uuid || uuid === 'undefined') uuid = uuidv4()
 
   let name = localStorage.getItem('name')
   if (!name || name === 'undefined') name = uuid.slice(-4)
