@@ -1,6 +1,5 @@
 <script setup>
 import { computed } from 'vue'
-import { aliases, mdi } from 'vuetify/iconsets/mdi'
 
 const props = defineProps({
   avatar: {
@@ -9,20 +8,31 @@ const props = defineProps({
   },
   size: {
     type: String,
-    default: '40',
-  } 
+    default: '64',
+  },
+  color: {
+    type: String,
+    default: '',
+  },
 })
 
 const hasValidIcon = computed(() => {
   const iconName = props.avatar.icon
-  return iconName && (iconName in mdi || iconName in aliases)
+  return !!(iconName && iconName.startsWith('mdi-'))
 })
 </script>
+
+<style scoped>
+.me {
+  border: 2px solid green;
+  border-radius: 1000px;
+}
+</style>
 
 <template>
   <v-avatar :color="avatar.color" size="size">
     <template v-if="hasValidIcon">
-      <v-icon :icon="avatar.icon" />
+      <v-icon :icon="avatar.icon" :color="color"/>
     </template>
     <template v-else>
       <span class="text-h5">{{ avatar.text }}</span>

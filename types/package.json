@@ -1,0 +1,7 @@
+{
+  "name": "@bchat/types",
+  "version": "1.0.0",
+  "main": "index.d.ts",
+  "types": "index.d.ts",
+  "private": true
+}

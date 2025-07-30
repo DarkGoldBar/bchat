@@ -1,10 +1,12 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 
 const router = useRouter()
 
 const API_URL = import.meta.env.VITE_API_URL
+
+const snackbarCall = inject('snackbarCall')
 
 const gamelist = ref([
   {
@@ -24,10 +26,6 @@ const gamelist = ref([
   },
 ])
 
-const snackbar = ref(false)
-const snackbarMessage = ref('')
-const snackbarColor = ref('error')
-
 // 处理游戏点击事件
 const handleGameClick = (game) => {
   fetch(`${API_URL}/room?type=${game.type}`, {
@@ -43,14 +41,11 @@ const handleGameClick = (game) => {
     .then((data) => {
       router.push({
         path: game.route,
-        query: { room: data.id }
+        query: { roomId: data.roomId }
       });
     })
     .catch((error) => {
-      console.error('创建游戏房间失败:', error);
-      snackbarMessage.value = '无法创建游戏房间';
-      snackbarColor.value = 'error';
-      snackbar.value = true;
+      snackbarCall('创建游戏房间失败:', 'error')
     });
 };
 </script>
@@ -61,10 +56,10 @@ const handleGameClick = (game) => {
       <v-col cols="12" class="mb-4">
         <v-img :src="'./logo.png'" class="my-3" contain height="200" />
         <p class="font-weight-regular">Welcome to BChat, a simple game application.</p>
-        <v-divider class="my-3"/>
+        <v-divider class="my-3" />
         <h3 class="text-h5">Quick Start:</h3>
       </v-col>
-  
+
       <v-col cols="4" class="mx-auto" v-for="game in gamelist" :key="game.name">
         <v-card link @click="handleGameClick(game)">
           <v-card-text>
@@ -73,10 +68,5 @@ const handleGameClick = (game) => {
         </v-card>
       </v-col>
     </v-row>
-
-    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000">
-      {{ snackbarMessage }}
-    </v-snackbar>
-
   </v-container>
 </template>
