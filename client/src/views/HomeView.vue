@@ -10,24 +10,26 @@ const snackbarCall = inject('snackbarCall')
 
 const gamelist = ref([
   {
-    name: 'wuziqi',
+    name: '五子棋',
     type: 'wuziqi',
-    route: '/wuziqi'
+    route: '/wuziqi',
+    roomId: ''
   },
   {
     name: 'dummy1',
     type: 'dummy1',
-    route: '/dummy1'
+    route: '/dummy1',
+    roomId: ''
   },
   {
     name: 'dummy2',
     type: 'dummy2',
-    route: '/dummy2'
+    route: '/dummy2',
+    roomId: ''
   },
 ])
 
-// 处理游戏点击事件
-const handleGameClick = (game) => {
+function handleGameCreate(game) {
   fetch(`${API_URL}/room?type=${game.type}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
@@ -48,6 +50,13 @@ const handleGameClick = (game) => {
       snackbarCall('创建游戏房间失败:', 'error')
     });
 };
+
+function handleGameJoin(game) {
+  router.push({
+    path: game.route,
+    query: { roomId: game.roomId }
+  });
+}
 </script>
 
 <template>
@@ -61,10 +70,18 @@ const handleGameClick = (game) => {
       </v-col>
 
       <v-col cols="4" class="mx-auto" v-for="game in gamelist" :key="game.name">
-        <v-card link @click="handleGameClick(game)">
-          <v-card-text>
+        <v-card>
+          <v-card-title>
             {{ game.name }}
+          </v-card-title>
+          <v-card-text>
+            <v-text-field hint="输入一个房间ID来加入房间" label="房间ID" v-model="game.roomId">
+            </v-text-field>
           </v-card-text>
+          <v-card-actions>
+            <v-btn @click="handleGameCreate(game)">新建</v-btn>
+            <v-btn @click="handleGameJoin(game)">加入</v-btn>
+          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>

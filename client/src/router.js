@@ -10,7 +10,7 @@ const routes = [
   {
     path: '/wuziqi',
     name: 'Wuziqi',
-    component: () => import('./views/WuziqiGame.vue')
+    component: () => import('./views/WuziqiView.vue')
   },
   {
     path: '/about',

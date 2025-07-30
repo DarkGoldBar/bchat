@@ -88,30 +88,30 @@ function handleGiveUp() {
 </script>
 
 <template>
-  <v-container fluid class="pa-4">
+  <v-container fluid class="pa-4 d-flex flex-column">
     <!-- 状态栏 -->
-    <v-row align="center" justify="space-between" class="mb-4">
-      <v-col cols="5" class="text-center">
+    <v-row align="center" justify="space-between" class="flex-0-0-0">
+      <v-col class="text-center">
         <UserAvatar :avatar="player1.avatar" :class="{ 'me': isme(player1) }" />
         <div class="text-subtitle-1">{{ player1.name }}</div>
       </v-col>
-      <v-col v-if="winner" cols="2" class="text-center">
+      <v-col v-if="winner" class="text-center">
         <v-chip color="success" variant="flat">赢家</v-chip>
         <p>{{ winner.name }}</p>
       </v-col>
-      <v-col v-else cols="2" class="text-center">
+      <v-col v-else class="text-center">
         <v-chip color="primary" variant="flat">轮到</v-chip>
         <p>{{ state.current === 1 ? player1.name : player2.name }}</p>
       </v-col>
-      <v-col cols="5" class="text-center">
+      <v-col class="text-center">
         <UserAvatar :avatar="player2.avatar" :class="{ 'me': isme(player2) }" />
         <div class="text-subtitle-1">{{ player2.name }}</div>
       </v-col>
     </v-row>
 
     <!-- 棋盘区域 -->
-    <v-card class="mb-4" elevation="2" height="550px" align="center">
-      <svg id="board" width="500" height="500" viewBox="0 0 500 500">
+    <v-card align="center" elevation="2" class="flex-1-1-100">
+      <svg id="board" viewBox="0 0 500 500">
         <!-- 网格线 -->
         <g stroke="#000">
           <line v-for="i in rows" :key="'h' + i" :x1="cellSize / 2" :x2="cellSize * (cols - 0.5)"
@@ -134,9 +134,9 @@ function handleGiveUp() {
     </v-card>
 
     <!-- 控制区 -->
-    <v-row justify="center" align="center" class="mt-2">
-      <v-btn color="primary" class="mx-2" @click="handleUndo">悔棋</v-btn>
-      <v-btn color="error" class="mx-2" @click="handleGiveUp">认输</v-btn>
+    <v-row justify="center" align="center" class="flex-0-0-0 mt-2">
+      <v-btn color="primary" class="ma-2" @click="handleUndo">悔棋</v-btn>
+      <v-btn color="error" class="ma-2" @click="handleGiveUp">认输</v-btn>
     </v-row>
   </v-container>
 </template>
@@ -148,6 +148,7 @@ svg#board {
   padding: 4px;
   border: 3px solid #888;
   background-color: #fef9e7;
+  max-height: 500px;
 }
 
 svg#board[disabled] {
