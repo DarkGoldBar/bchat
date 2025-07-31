@@ -180,27 +180,31 @@ async function updateRoomMember(room, userIndex) {
  * 向用户发送消息
  * @param {User} user
  * @param {Object} payload
+ * @param {(user: User) => void} [goneException]
  */
-async function sendMessage(user, payload) {
-  if (!user.connectId) return
+async function sendMessage(user, payload, goneException) {
+  if (!user.connectId) return;
   if (user.connectId.startsWith('$TEST')) {
-    console.log(JSON.stringify(payload))
-    return
+    console.log(JSON.stringify(payload));
+    return;
   }
   try {
-    const s = JSON.stringify(payload)
+    const s = JSON.stringify(payload);
     await apiGateway.send(
       new PostToConnectionCommand({
         ConnectionId: user.connectId,
         Data: Buffer.from(s)
       })
-    )
-    console.log(`Post -> ${user.connectId}: ${s}`)
+    );
+    console.log(`Post -> ${user.connectId}: ${s}`);
   } catch (err) {
     if (err.name === 'GoneException') {
-      console.warn(`GoneException ${user.connectId}`)
+      console.warn(`GoneException ${user.connectId}`);
+      if (typeof goneException === 'function') {
+        goneException(user);
+      }
     } else {
-      throw err
+      throw err;
     }
   }
 }
@@ -209,16 +213,18 @@ async function sendMessage(user, payload) {
  * 广播消息到多个用户
  * @param {Room} room
  * @param {Object} payload
+ * @param {(user: User) => void} [goneException] - 可选 GoneException 回调
  */
-async function broadcastMessage(room, payload) {
+async function broadcastMessage(room, payload, goneException) {
   if (!room || !room.members || room.members.length === 0) {
-    console.warn('No members in the room to broadcast to.')
-    return
+    console.warn('No members in the room to broadcast to.');
+    return;
   }
   const broadcasts = room.members
     .filter(m => m.connectId)
-    .map(async user => sendMessage(user, payload))
-  await Promise.all(broadcasts)
+    .map(user => sendMessage(user, payload, goneException));
+
+  await Promise.all(broadcasts);
 }
 
 module.exports = {

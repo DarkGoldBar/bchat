@@ -1,5 +1,5 @@
-/** @typedef {import('@bchat/types.js').Room} Room */
-/** @typedef {import('@bchat/types.js').User} User */
+/** @typedef {import('@bchat/types').Room} Room */
+/** @typedef {import('@bchat/types').User} User */
 const { getInterface } = require('./interface.js')
 const impl = getInterface()
 const { lobbyHandler } = require('./routerLobby')
@@ -63,7 +63,6 @@ async function handleJoin(room, user, body) {
     ...body.me,
     connectId: user.connectId
   }
-  /** @type {User} */
   let newUser = room.members.find(m => m.uuid === user.uuid)
   if (newUser) {
     console.log('User exist')
@@ -78,22 +77,7 @@ async function handleJoin(room, user, body) {
     room.members.push(newUser)
     await impl.pushRoomMember(room, newUser)
   }
-  // 广播更新
-  await impl.broadcastMessage(room, {
-    action: 'init',
-    room: room,
-  })
-
-  // 通知对应的hander
-  // if (room.stage === 'lobby') {
-  //   await lobbyHandler('postJoin', room, user)
-  // } else if (room.stage === 'ingame') {
-  //   await wuziqiHandler('postJoin', room, user)
-  // } else if (room.stage === 'gameover') {
-  //   // 什么也不做
-  // } else {
-  //   throw new Error(`Invalid room stage: ${room.stage}`)
-  // }
+  await impl.broadcastMessage(room, { action: 'updateRoom', room: room })
 }
 
 /**
@@ -105,16 +89,18 @@ async function handleDisconnect(connectId) {
   if (!result.Item) throw new Error(`User not found: ${connectId}`)
   const roomId = result.Item.body
   const { room, user } = await impl.getRoomAndUser(roomId, connectId)
-  // 通知对应的hander
-  if (room.stage === 'lobby') {
-    await lobbyHandler('leave', room, user)
-  } else if (room.stage === 'ingame') {
-    await wuziqiHandler('leave', room, user)
-  } else if (room.stage === 'gameover') {
-    // 什么也不做
+  userIndex = room.members.findIndex(m => m.connectId === user.connectId)
+  if (userIndex === -1) throw new Error(`User not found`)
+  if (room.stage === 'lobby' || user.position === 0) {
+    await impl.popRoomMember(room, userIndex)
+    room.members.splice(userIndex, 1);
+  } else if (user.position !== 0) {
+    user.connectId = null
+    await impl.updateRoomMember(room, userIndex)
   } else {
     throw new Error(`Invalid room stage: ${room.stage}`)
   }
+  await impl.broadcastMessage(room, { action:'updateRoom', room })
 }
 
 /**

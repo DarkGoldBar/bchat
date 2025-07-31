@@ -68,6 +68,27 @@ function confirmEdit() {
     }
   })
 }
+
+async function fetchMdiNames() {
+  const url = 'https://raw.githubusercontent.com/Templarian/MaterialDesign/master/meta.json';
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+  }
+
+  const data = await res.json();
+
+  const names = data.flatMap(item => {
+    const arr = [item.name];
+    if (Array.isArray(item.aliases)) {
+      arr.push(...item.aliases);
+    }
+    return arr;
+  });
+
+  return [...new Set(names)];
+}
 </script>
 
 <template>
@@ -97,7 +118,7 @@ function confirmEdit() {
           <v-card class="pa-1 mb-3" @click="handlePositionClick(0)">
             <v-card-subtitle>旁观</v-card-subtitle>
             <v-card-text class="d-flex align-center justify-space-around">
-              <UserAvatar v-for="(user) in posZero" :avatar="user.avatar" :class="{ 'me': isme(user) }" />
+              <UserAvatar v-for="(user) in posZero" :user="user" :class="{ 'me': isme(user) }" />
             </v-card-text>
           </v-card>
         </v-col>
@@ -110,7 +131,7 @@ function confirmEdit() {
             <v-card-subtitle> 位置 {{ pos }} </v-card-subtitle>
             <v-card-text>
               <div v-if="posMap[pos]">
-                <UserAvatar :avatar="posMap[pos].avatar" :class="{ 'me': isme(posMap[pos]) }" />
+                <UserAvatar :user="posMap[pos]" :class="{ 'me': isme(posMap[pos]) }" />
                 <div>{{ posMap[pos].name }}</div>
               </div>
               <div v-else>空位</div>

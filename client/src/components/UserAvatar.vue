@@ -1,25 +1,21 @@
 <script setup>
+/** @typedef {import('@bchat/types').User} User */
 import { computed } from 'vue'
 
+/** @type {{ user: Readonly<User> }} */
 const props = defineProps({
-  avatar: {
+  user: {
     type: Object,
-    required: true,
-  },
-  size: {
-    type: String,
-    default: '64',
-  },
-  color: {
-    type: String,
-    default: '',
+    default: {},
   },
 })
 
 const hasValidIcon = computed(() => {
-  const iconName = props.avatar.icon
+  const iconName = props.user.avatar.icon
   return !!(iconName && iconName.startsWith('mdi-'))
 })
+
+const isOnline = computed(() => !!props.user.connectId)
 </script>
 
 <style scoped>
@@ -29,13 +25,16 @@ const hasValidIcon = computed(() => {
 }
 </style>
 
-<template>
-  <v-avatar :color="avatar.color" size="size">
+<template >
+  <v-avatar v-if="isOnline">
     <template v-if="hasValidIcon">
-      <v-icon :icon="avatar.icon" :color="color"/>
+      <v-icon :icon="props.user.avatar.icon" :color="props.user.avatar.color"/>
     </template>
     <template v-else>
-      <span class="text-h5">{{ avatar.text }}</span>
+      <span class="text-h5">{{ props.user.name }}</span>
     </template>
+  </v-avatar>
+  <v-avatar v-else>
+    <v-icon icon="mdi-link-off" color="#888888"/>
   </v-avatar>
 </template>

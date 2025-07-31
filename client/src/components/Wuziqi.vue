@@ -92,7 +92,7 @@ function handleGiveUp() {
     <!-- 状态栏 -->
     <v-row align="center" justify="space-between" class="flex-0-0-0">
       <v-col class="text-center">
-        <UserAvatar :avatar="player1.avatar" :class="{ 'me': isme(player1) }" />
+        <UserAvatar :user="player1" :class="{ 'me': isme(player1) }" />
         <div class="text-subtitle-1">{{ player1.name }}</div>
       </v-col>
       <v-col v-if="winner" class="text-center">
@@ -104,7 +104,7 @@ function handleGiveUp() {
         <p>{{ state.current === 1 ? player1.name : player2.name }}</p>
       </v-col>
       <v-col class="text-center">
-        <UserAvatar :avatar="player2.avatar" :class="{ 'me': isme(player2) }" />
+        <UserAvatar :user="player2" :class="{ 'me': isme(player2) }" />
         <div class="text-subtitle-1">{{ player2.name }}</div>
       </v-col>
     </v-row>
