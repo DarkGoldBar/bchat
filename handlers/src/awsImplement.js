@@ -198,7 +198,7 @@ async function sendMessage(user, payload) {
     console.log(`Post -> ${user.connectId}: ${s}`)
   } catch (err) {
     if (err.name === 'GoneException') {
-      console.warn(`GoneException ${user.connectId}`)
+      return user.connectId
     } else {
       throw err
     }
@@ -209,8 +209,9 @@ async function sendMessage(user, payload) {
  * 广播消息到多个用户
  * @param {Room} room
  * @param {Object} payload
+ * @param {(connectId: string)=> void} gone_callback
  */
-async function broadcastMessage(room, payload) {
+async function broadcastMessage(room, payload, gone_callback) {
   if (!room || !room.members || room.members.length === 0) {
     console.warn('No members in the room to broadcast to.')
     return
@@ -218,7 +219,11 @@ async function broadcastMessage(room, payload) {
   const broadcasts = room.members
     .filter(m => m.connectId)
     .map(async user => sendMessage(user, payload))
-  await Promise.all(broadcasts)
+  const gone = await Promise.all(broadcasts)
+  if (typeof gone_callback === Function) {
+    gone.filter(x => x != undefined)
+      .map(gone_callback)
+  }
 }
 
 module.exports = {

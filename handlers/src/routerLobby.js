@@ -5,7 +5,6 @@ const impl = getInterface()
 
 /** @type {Record<string, (room: Room, user: User, context: object?) => Promise>}   */
 const ActionMap = {
-  leave: handleLeave,
   setPosition: handleSetPosition,
   setPosLimit: handleSetPosLimit,
   setSelf: handleSetSelf,
@@ -23,23 +22,6 @@ module.exports.lobbyHandler = async (action, room, user, context) => {
   const handler = ActionMap[action]
   if (!handler) throw new Error(`Invalid action: ${action}`)
   return await handler(room, user, context)
-}
-
-/**
- * @param {Room} room
- * @param {User} user
- */
-async function handleLeave(room, user) {
-  const userIndex = room.members.indexOf(user)
-  if (userIndex < 0) {
-    throw new Error(`User not found in room: ${user.uuid} ${user.connectId}`)
-  }
-  room.members.splice(userIndex, 1)
-  await impl.popRoomMember(room, userIndex)
-  await impl.broadcastMessage(room, {
-    action: 'init',
-    room: room,
-  })
 }
 
 /**

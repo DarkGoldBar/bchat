@@ -80,20 +80,9 @@ async function handleJoin(room, user, body) {
   }
   // 广播更新
   await impl.broadcastMessage(room, {
-    action: 'init',
+    action: 'updateRoom',
     room: room,
   })
-
-  // 通知对应的hander
-  // if (room.stage === 'lobby') {
-  //   await lobbyHandler('postJoin', room, user)
-  // } else if (room.stage === 'ingame') {
-  //   await wuziqiHandler('postJoin', room, user)
-  // } else if (room.stage === 'gameover') {
-  //   // 什么也不做
-  // } else {
-  //   throw new Error(`Invalid room stage: ${room.stage}`)
-  // }
 }
 
 /**
@@ -106,10 +95,28 @@ async function handleDisconnect(connectId) {
   const roomId = result.Item.body
   const { room, user } = await impl.getRoomAndUser(roomId, connectId)
   // 通知对应的hander
-  if (room.stage === 'lobby') {
-    await lobbyHandler('leave', room, user)
+  if (room.stage === 'lobby' || user.position === 0) {
+    const userIndex = room.members.indexOf(user)
+    if (userIndex < 0) {
+      throw new Error(`User not found in room: ${user.uuid} ${user.connectId}`)
+    }
+    room.members.splice(userIndex, 1)
+    await impl.popRoomMember(room, userIndex)
+    await impl.broadcastMessage(room, {
+      action: 'updateRoom',
+      room: room,
+    })
   } else if (room.stage === 'ingame') {
-    await wuziqiHandler('leave', room, user)
+    const userIndex = room.members.indexOf(user)
+    if (userIndex < 0) {
+      throw new Error(`User not found in room: ${user.uuid} ${user.connectId}`)
+    }
+    user.connectId = null
+    await impl.updateRoomMember(room, userIndex)
+    await impl.broadcastMessage(room, {
+      action: 'updateRoom',
+      room: room,
+    })
   } else if (room.stage === 'gameover') {
     // 什么也不做
   } else {

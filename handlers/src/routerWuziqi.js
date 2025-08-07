@@ -12,7 +12,6 @@ const { Wuziqi } = require('@bchat/shared')
  * @param {object?} context
  */
 module.exports.wuziqiHandler = async (action, room, user, context) => {
-  if (action === 'leave') return await handleLeave(room, user)
   if (action === 'start') return await handleStartGame(room)
   if (action === 'doMove') return await handleDoMove(room, user, context)
   throw new Error(`Invalid subAction: ${action}`)
